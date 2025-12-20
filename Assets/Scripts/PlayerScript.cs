@@ -1,67 +1,58 @@
 using UnityEngine;
-
-using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class PlayerScript : MonoBehaviour
 {
-    [Header("Movement")]
-    [SerializeField] private float moveSpeed = 5f;
+    [Header("Movement")] [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
 
-    private CharacterController controller;
-    private Vector3 velocity;
+    private CharacterController _controller;
+    private Vector3 _velocity;
 
-    private Vector2 moveInput;
-    private bool jumpPressed;
+    private Vector2 _moveInput;
+    private bool _jumpPressed;
 
-    void Awake()
+    private void Awake()
     {
-        controller = GetComponent<CharacterController>();
+        _controller = GetComponent<CharacterController>();
     }
 
-    void Update()
+    private void Update()
     {
-        HandleMovement();
-        HandleGravityAndJump();
-    }
+        var move =
+            transform.right * _moveInput.x +
+            transform.forward * _moveInput.y;
 
-    private void HandleMovement()
-    {
-        var move = transform.right * moveInput.x + transform.forward * moveInput.y;
-        controller.Move(move * moveSpeed * Time.deltaTime);
-    }
-
-    private void HandleGravityAndJump()
-    {
-        if (controller.isGrounded)
+        if (_controller.isGrounded)
         {
-            if (velocity.y < 0)
-                velocity.y = -2f;
+            if (_velocity.y < 0)
+                _velocity.y = -2f;
 
-            if (jumpPressed)
+            if (_jumpPressed)
             {
-                velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                jumpPressed = false;
+                _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                _jumpPressed = false;
             }
         }
 
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        _velocity.y += gravity * Time.deltaTime;
+
+        var displacement = (move * moveSpeed + _velocity) * Time.deltaTime;
+        _controller.Move(displacement);
     }
 
-    // === Input System callbacks ===
+    // === Send Messages callbacks ===
 
-    public void OnMove(InputAction.CallbackContext context)
+    public void OnMove(InputValue value)
     {
-        moveInput = context.ReadValue<Vector2>();
+        _moveInput = value.Get<Vector2>();
     }
 
-    public void OnJump(InputAction.CallbackContext context)
+    public void OnJump()
     {
-        if (context.performed)
-            jumpPressed = true;
+        if (_controller.isGrounded)
+            _jumpPressed = true;
     }
 }
