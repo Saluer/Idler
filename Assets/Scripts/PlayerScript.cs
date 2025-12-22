@@ -8,22 +8,50 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
 
+    [SerializeField] [Range(min: 1, max: 100)]
+    private float mouseSensitivity;
+
+    [SerializeField] private Transform cameraTransform;
     private CharacterController _controller;
+    
     private Vector3 _velocity;
 
     private Vector2 _moveInput;
     private bool _jumpPressed;
+    private Vector2 _lookInput;
+    private float _xRotation;
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
     {
-        var move =
-            transform.right * _moveInput.x +
-            transform.forward * _moveInput.y;
+        HandleCameraMove();
+        HandleMove();
+    }
+
+    private void HandleCameraMove()
+    {
+        //vert
+        var y = _lookInput.y * mouseSensitivity * Time.deltaTime;
+        _xRotation -= y;
+        _xRotation = Mathf.Clamp(_xRotation, -40f, 40f);
+        cameraTransform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
+
+        //hor
+        var x = _lookInput.x * mouseSensitivity *  Time.deltaTime;
+        transform.Rotate(Vector3.up * x);
+
+    }
+
+    private void HandleMove()
+    {
+        var move = transform.right * _moveInput.x + transform.forward * _moveInput.y;
 
         if (_controller.isGrounded)
         {
@@ -54,5 +82,10 @@ public class PlayerScript : MonoBehaviour
     {
         if (_controller.isGrounded)
             _jumpPressed = true;
+    }
+
+    public void OnLook(InputValue value)
+    {
+        _lookInput = value.Get<Vector2>();
     }
 }
