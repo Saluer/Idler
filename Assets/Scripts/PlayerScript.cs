@@ -13,7 +13,7 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField] private Transform cameraTransform;
     private CharacterController _controller;
-    
+
     private Vector3 _velocity;
 
     private Vector2 _moveInput;
@@ -37,16 +37,12 @@ public class PlayerScript : MonoBehaviour
 
     private void HandleCameraMove()
     {
-        //vert
-        var y = _lookInput.y * mouseSensitivity * Time.deltaTime;
-        _xRotation -= y;
-        _xRotation = Mathf.Clamp(_xRotation, -40f, 40f);
+        var vec = _lookInput * (mouseSensitivity * Time.deltaTime);
+        _xRotation -= vec.y;
+        _xRotation = Mathf.Clamp(_xRotation, -30f, 10f);
         cameraTransform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
 
-        //hor
-        var x = _lookInput.x * mouseSensitivity *  Time.deltaTime;
-        transform.Rotate(Vector3.up * x);
-
+        transform.Rotate(Vector3.up * vec.x);
     }
 
     private void HandleMove()
