@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
 {
+    private static readonly int Grounded = Animator.StringToHash("grounded");
     [Header("Movement")] [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
@@ -13,6 +14,7 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField] private Transform cameraTransform;
     private CharacterController _controller;
+    private Animator _animator;
 
     private Vector3 _velocity;
 
@@ -24,6 +26,7 @@ public class PlayerScript : MonoBehaviour
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
+        _animator = GetComponentInChildren<Animator>();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -49,6 +52,7 @@ public class PlayerScript : MonoBehaviour
     {
         var move = transform.right * _moveInput.x + transform.forward * _moveInput.y;
 
+        _animator.SetBool(Grounded, _controller.isGrounded);
         if (_controller.isGrounded)
         {
             if (_velocity.y < 0)
