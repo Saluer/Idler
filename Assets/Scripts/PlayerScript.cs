@@ -12,7 +12,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] [Range(min: 1, max: 100)]
     private float mouseSensitivity;
 
-    [SerializeField] private Transform cameraTransform;
+    private Transform _cameraTransform;
     private CharacterController _controller;
     private Animator _animator;
 
@@ -27,6 +27,7 @@ public class PlayerScript : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _animator = GetComponentInChildren<Animator>();
+        _cameraTransform = GetComponentInChildren<Camera>().transform;
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -43,7 +44,7 @@ public class PlayerScript : MonoBehaviour
         var vec = _lookInput * (mouseSensitivity * Time.deltaTime);
         _xRotation -= vec.y;
         _xRotation = Mathf.Clamp(_xRotation, -30f, 10f);
-        cameraTransform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
+        _cameraTransform.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
 
         transform.Rotate(Vector3.up * vec.x);
     }
