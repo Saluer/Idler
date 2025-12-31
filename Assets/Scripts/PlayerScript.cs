@@ -5,9 +5,11 @@ using UnityEngine.InputSystem;
 public class PlayerScript : MonoBehaviour
 {
     private static readonly int Grounded = Animator.StringToHash("grounded");
+
     [Header("Movement")] [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
+    [SerializeField] private int maxHealth;
 
     [SerializeField] [Range(min: 1, max: 100)]
     private float mouseSensitivity;
@@ -16,6 +18,8 @@ public class PlayerScript : MonoBehaviour
     private CharacterController _controller;
     private Animator _animator;
 
+
+    private int _health;
     private Vector3 _velocity;
 
     private Vector2 _moveInput;
@@ -28,6 +32,7 @@ public class PlayerScript : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _animator = GetComponentInChildren<Animator>();
 
+        _health = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
     }
@@ -36,6 +41,7 @@ public class PlayerScript : MonoBehaviour
     {
         HandleCameraMove();
         HandleMove();
+        HandleHealth();
     }
 
     private void HandleCameraMove()
@@ -69,6 +75,14 @@ public class PlayerScript : MonoBehaviour
 
         var displacement = (move * moveSpeed + _velocity) * Time.deltaTime;
         _controller.Move(displacement);
+    }
+
+    private void HandleHealth()
+    {
+        if (_health <= 0)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     // === Send Messages callbacks ===
