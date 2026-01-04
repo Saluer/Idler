@@ -131,6 +131,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.EnemyScript
   speed: 3
   damage: 1
+  health: 1
 --- !u!143 &2856169598537534233
 CharacterController:
   m_ObjectHideFlags: 0

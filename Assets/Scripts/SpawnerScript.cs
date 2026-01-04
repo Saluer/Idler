@@ -21,7 +21,7 @@ namespace DefaultNamespace
         private void OnTriggerEnter(Collider other)
         {
             if (other.gameObject != _targetCollider.gameObject) return;
-            
+
             StartCoroutine(Spawn(10));
         }
 

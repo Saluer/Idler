@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -5,6 +6,7 @@ namespace DefaultNamespace
     [RequireComponent(typeof(Rigidbody))]
     public class EnemyScript : MonoBehaviour
     {
+        public static event Action OnEnemyKilled;
         public PlayerScript player { get; set; }
 
         private Rigidbody _rb;
@@ -13,6 +15,7 @@ namespace DefaultNamespace
         [SerializeField] private float speed;
 
         [SerializeField] private int damage;
+        [SerializeField] private int health;
 
         private void Awake()
         {
@@ -21,6 +24,12 @@ namespace DefaultNamespace
         }
 
         private void Update()
+        {
+            HandleHealth();
+            HandleMovement();
+        }
+
+        private void HandleMovement()
         {
             if (!player) return;
 
@@ -32,6 +41,19 @@ namespace DefaultNamespace
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
             _rb.MovePosition(newPosition);
+        }
+
+        private void HandleHealth()
+        {
+            if (health > 0) return;
+            
+            Destroy(gameObject);
+            OnEnemyKilled?.Invoke();
+        }
+
+        public void HandleHealthChange(int delta)
+        {
+            health += delta;
         }
 
         private void OnTriggerEnter(Collider other)
