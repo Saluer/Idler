@@ -9,9 +9,9 @@ namespace DefaultNamespace
     {
         private PlayerScript _player;
         private Collider _targetCollider;
-
         private Collider _collider;
-        
+
+        private bool _triggerActivated;
         [SerializeField] private EnemyLevelConfig config;
         [SerializeField] private Transform spawnPosition;
 
@@ -23,8 +23,9 @@ namespace DefaultNamespace
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject != _targetCollider.gameObject) return;
+            if (other.gameObject != _targetCollider.gameObject || _triggerActivated) return;
 
+            _triggerActivated = true;
             StartCoroutine(Spawn(config.enemyCount));
         }
 
