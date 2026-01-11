@@ -63,5 +63,10 @@ namespace DefaultNamespace
                 Debug.Log("Hit player");
             }
         }
+
+        private void DealDamage(int damage)
+        {
+            
+        }
     }
 }

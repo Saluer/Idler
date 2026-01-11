@@ -7,13 +7,23 @@ public class PlayerScript : MonoBehaviour
 {
     private static readonly int Grounded = Animator.StringToHash("grounded");
 
+    [SerializeField] private int maxHealth;
+
     [Header("Movement")] [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
-    [SerializeField] private int maxHealth;
 
-    [SerializeField] [Range(min: 1, max: 100)]
+    [Header("Weapon")] [SerializeField] [Range(min: 1, max: 20)]
+    private float swingSpeed = 5f;
+
+    [SerializeField] [Range(min: 10, max: 90)]
+    private float swingRange = 5f;
+
+    [Header("Camera")] [SerializeField] [Range(min: 1, max: 100)]
     private float mouseSensitivity;
+
+    [SerializeField] [Range(min: 1, max: 50)]
+    private float xMaxRotationAngle;
 
     [SerializeField] private Transform cameraPivot;
     private CharacterController _controller;
@@ -52,9 +62,9 @@ public class PlayerScript : MonoBehaviour
     {
         while (true)
         {
-            //todo add parametrization
-            var angle = Mathf.Sin(Time.time * 2) * 60f;
+            var angle = Mathf.Sin(Time.time * swingSpeed) * swingRange;
             _weapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
+            //todo make a swing single and add delay between it, maybe add invisibility while it's recharging
             yield return null;
         }
     }
@@ -63,11 +73,20 @@ public class PlayerScript : MonoBehaviour
     {
         var look = _lookInput * (mouseSensitivity * Time.deltaTime);
 
-        _xRotation -= look.y;
-        _xRotation = Mathf.Clamp(_xRotation, -10f, 10f);
-        cameraPivot.localRotation = Quaternion.Euler(_xRotation, 0f, 0f);
-
         transform.Rotate(Vector3.up * look.x);
+
+        var prevPitch = _xRotation;
+        _xRotation = Mathf.Clamp(_xRotation - look.y, -10, xMaxRotationAngle);
+
+        var deltaPitch = _xRotation - prevPitch;
+        if (Mathf.Abs(deltaPitch) < 0.0001f)
+            return;
+
+        cameraPivot.RotateAround(
+            transform.position,
+            transform.right,
+            deltaPitch
+        );
     }
 
     private void HandleMove()

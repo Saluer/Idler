@@ -4,12 +4,15 @@ using UnityEngine;
 namespace DefaultNamespace
 {
     [RequireComponent(typeof(Collider))]
+    //todo add changing of name, enemy preview, enemy configs dynamically based on list of configs
     public class SpawnerScript : MonoBehaviour
     {
         private PlayerScript _player;
         private Collider _targetCollider;
+
         private Collider _collider;
-        [SerializeField] private GameObject enemyPrefab;
+        
+        [SerializeField] private EnemyLevelConfig config;
         [SerializeField] private Transform spawnPosition;
 
         private void Awake()
@@ -22,7 +25,7 @@ namespace DefaultNamespace
         {
             if (other.gameObject != _targetCollider.gameObject) return;
 
-            StartCoroutine(Spawn(10));
+            StartCoroutine(Spawn(config.enemyCount));
         }
 
         private IEnumerator Spawn(int times)
@@ -32,7 +35,7 @@ namespace DefaultNamespace
                 var spawnPositionPosition = spawnPosition.position;
                 spawnPositionPosition = new Vector3(spawnPositionPosition.x + Random.Range(-5, 5),
                     spawnPositionPosition.y, spawnPositionPosition.z);
-                var enemy = Instantiate(enemyPrefab, spawnPositionPosition, Quaternion.identity)
+                var enemy = Instantiate(config.prefab, spawnPositionPosition, Quaternion.identity)
                     .GetComponent<EnemyScript>();
                 enemy.player = _player;
                 yield return new WaitForSeconds(0.1f);
