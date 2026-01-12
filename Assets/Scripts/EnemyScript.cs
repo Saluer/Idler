@@ -4,6 +4,7 @@ using UnityEngine;
 namespace DefaultNamespace
 {
     [RequireComponent(typeof(Rigidbody))]
+    //todo add new enemies
     public class EnemyScript : MonoBehaviour
     {
         public static event Action OnEnemyKilled;
@@ -21,6 +22,16 @@ namespace DefaultNamespace
         {
             _defaultPosition = transform.position;
             _rb = GetComponent<Rigidbody>();
+        }
+
+        private void Start()
+        {
+            GameManager.instance.enemies.Add(gameObject);
+        }
+
+        private void OnDestroy()
+        {
+            GameManager.instance.enemies.Remove(gameObject);
         }
 
         private void Update()
@@ -46,6 +57,8 @@ namespace DefaultNamespace
         private void HandleHealth()
         {
             if (health > 0) return;
+
+            Debug.Log("Enemy is dead");
             
             Destroy(gameObject);
             OnEnemyKilled?.Invoke();
@@ -66,7 +79,6 @@ namespace DefaultNamespace
 
         private void DealDamage(int damage)
         {
-            
         }
     }
 }

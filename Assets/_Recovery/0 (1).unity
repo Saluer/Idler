@@ -2546,7 +2546,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.RangeWeaponScript
   bullet: {fileID: 1404200745246544, guid: 068381675912eb044a912de01e17f9cd, type: 3}
   damage: 1
-  range: 50
+  range: 25
 --- !u!1 &1887208472
 GameObject:
   m_ObjectHideFlags: 0
@@ -2993,9 +2993,7 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 2856169598537534233, guid: d082b6034ef3b4c6c904a831db73414a, type: 3}
-    - {fileID: 3328385882640880651, guid: d082b6034ef3b4c6c904a831db73414a, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []

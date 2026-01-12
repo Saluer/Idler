@@ -2,18 +2,9 @@ using System;
 using DefaultNamespace;
 using UnityEngine;
 
-public class WeaponScript : MonoBehaviour
+public class MeleeWeaponScript : MonoBehaviour
 {
     public event Action<EnemyScript> OnHitDelegate;
-
-    private void Start()
-    {
-    }
-
-
-    private void Update()
-    {
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -22,6 +13,8 @@ public class WeaponScript : MonoBehaviour
         {
             return;
         }
+
+        Debug.Log("Melee weapon hit");
 
         OnHitDelegate?.Invoke(enemyScript);
     }

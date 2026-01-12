@@ -2546,7 +2546,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.RangeWeaponScript
   bullet: {fileID: 1404200745246544, guid: 068381675912eb044a912de01e17f9cd, type: 3}
   damage: 1
-  range: 50
+  range: 5
 --- !u!1 &1887208472
 GameObject:
   m_ObjectHideFlags: 0

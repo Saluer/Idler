@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -28,7 +30,8 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private Transform cameraPivot;
     private CharacterController _controller;
     private Animator _animator;
-    private WeaponScript _weapon;
+    private MeleeWeaponScript _meleeWeapon;
+    private RangedWeaponScript _rangedWeapon;
 
     private int _health;
     private Vector3 _velocity;
@@ -42,13 +45,18 @@ public class PlayerScript : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _animator = GetComponentInChildren<Animator>();
-        _weapon = GetComponentInChildren<WeaponScript>();
+        _meleeWeapon = GetComponentInChildren<MeleeWeaponScript>();
+        _rangedWeapon = GetComponentInChildren<RangedWeaponScript>();
 
         _health = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-        StartCoroutine(HandleWeapon());
-        _weapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
+        if (_meleeWeapon) _meleeWeapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
+    }
+
+    private void Start()
+    {
+        HandleWeapon();
     }
 
     private void Update()
@@ -58,14 +66,41 @@ public class PlayerScript : MonoBehaviour
         HandleHealth();
     }
 
-    private IEnumerator HandleWeapon()
+    private void HandleWeapon()
+    {
+        if (_meleeWeapon)
+            StartCoroutine(HandleMeleeWeapon());
+
+        if (_rangedWeapon)
+            StartCoroutine(HandleRangeWeapon());
+    }
+
+    private IEnumerator HandleMeleeWeapon()
     {
         while (true)
         {
             var angle = Mathf.Sin(Time.time * swingSpeed) * swingRange;
-            _weapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
+            _meleeWeapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
             //todo make a swing single and add delay between it, maybe add invisibility while it's recharging
             yield return null;
+        }
+    }
+
+    private IEnumerator HandleRangeWeapon()
+    {
+        while (true)
+        {
+            var closestEnemy = GameManager.instance.GetClosestEnemyTo(transform);
+
+            if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out var component)))
+            {
+                yield return new WaitForSeconds(1f);
+                continue;
+            }
+
+            var center = component.bounds.center;
+            _rangedWeapon.Fire(center);
+            yield return new WaitForSeconds(1f);
         }
     }
 
