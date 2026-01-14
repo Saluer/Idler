@@ -13,7 +13,8 @@ namespace DefaultNamespace
         private Rigidbody _rb;
         private Animator _animator;
         private Vector3 _defaultPosition;
-
+        private bool _canHit;
+        private float dealtDamageTime;
         [SerializeField] private float speed;
 
         [SerializeField] private int damage;
@@ -45,6 +46,15 @@ namespace DefaultNamespace
             }
 
             HandleHealth();
+        }
+
+        private void FixedUpdate()
+        {
+            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            {
+                return;
+            }
+
             HandleMovement();
         }
 
@@ -52,14 +62,23 @@ namespace DefaultNamespace
         {
             if (!player) return;
 
+            if (Time.time - 1.5f >= dealtDamageTime)
+            {
+                _canHit = true;
+            }
+
             _defaultPosition = transform.position;
 
             var direction = player.transform.position - transform.position;
             direction = direction.normalized;
+            //todo figure out why it's there - a right place for y = 0
+            direction.y = 0;
 
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
-            gameObject.transform.rotation = Quaternion.LookRotation(direction);
+
+            var transformRotation = Quaternion.LookRotation(direction);
+            gameObject.transform.rotation = transformRotation;
 
             _rb.MovePosition(newPosition);
             _animator.SetFloat("Speed", 0.5f);
@@ -82,7 +101,7 @@ namespace DefaultNamespace
 
         private void OnTriggerEnter(Collider other)
         {
-            if ( player != null && other.GetComponent<PlayerScript>() == player)
+            if (player != null && other.GetComponent<PlayerScript>() == player)
             {
                 DealDamage();
             }
@@ -91,6 +110,8 @@ namespace DefaultNamespace
         private void DealDamage()
         {
             player.IncreaseHealth(-damage);
+            _canHit = false;
+            dealtDamageTime = Time.time;
         }
     }
 }

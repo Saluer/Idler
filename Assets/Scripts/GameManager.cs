@@ -6,6 +6,7 @@ using DefaultNamespace;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -16,13 +17,16 @@ public class GameManager : MonoBehaviour
     [DoNotSerialize] public int goldAmount { get; private set; }
     [DoNotSerialize] public List<GameObject> enemies = new();
     [DoNotSerialize] public GameMode gameMode { set; get; }
+    [SerializeField] private Canvas endScreen;
 
+    private PlayerScript player;
     public static GameManager instance { get; private set; }
 
     public enum GameMode
     {
         Active,
-        Shop
+        Shop,
+        End
     }
 
     private void Awake()
@@ -32,7 +36,20 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        player = FindFirstObjectByType<PlayerScript>();
         StartCoroutine(HandleLevels());
+        player.OnDeath += () =>
+        {
+            gameMode = GameMode.End;
+            endScreen.gameObject.SetActive(true);
+            StartCoroutine(Restart());
+
+            IEnumerator Restart()
+            {
+                yield return new WaitForSeconds(2f);
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+        };
     }
 
     private IEnumerator HandleLevels()
