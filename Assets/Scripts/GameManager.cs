@@ -11,8 +11,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
     private int _goldAmount;
     public List<GameObject> enemies = new();
+    public GameMode gameMode { set; get; }
 
     public static GameManager instance { get; private set; }
+
+    public enum GameMode
+    {
+        Active,
+        Shop
+    }
 
     private void Awake()
     {
@@ -27,7 +34,7 @@ public class GameManager : MonoBehaviour
 
     public GameObject GetClosestEnemyTo(Transform target)
     {
-       return enemies
+        return enemies
             .Where(enemy => enemy != null)
             .OrderBy(enemy => Vector3.Distance(target.position, enemy.transform.position))
             .FirstOrDefault();

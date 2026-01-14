@@ -10,6 +10,11 @@ namespace DefaultNamespace
 
         public void Fire(Vector3 target)
         {
+            if (!gameObject.activeSelf)
+            {
+                return;
+            }
+
             var bulletInstance =
                 Instantiate(bullet, transform.position, transform.rotation);
 

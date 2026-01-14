@@ -48,6 +48,9 @@ public class PlayerScript : MonoBehaviour
         _meleeWeapon = GetComponentInChildren<MeleeWeaponScript>();
         _rangedWeapon = GetComponentInChildren<RangedWeaponScript>();
 
+        _meleeWeapon.gameObject.SetActive(false);
+        _rangedWeapon.gameObject.SetActive(false);
+
         _health = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -61,6 +64,11 @@ public class PlayerScript : MonoBehaviour
 
     private void Update()
     {
+        if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+        {
+            return;
+        }
+
         HandleCameraMove();
         HandleMove();
         HandleHealth();
@@ -73,6 +81,16 @@ public class PlayerScript : MonoBehaviour
 
         if (_rangedWeapon)
             StartCoroutine(HandleRangeWeapon());
+    }
+
+    public void EquipRanged()
+    {
+        _rangedWeapon.gameObject.SetActive(true);
+    }
+
+    public void EquipMelee()
+    {
+        _meleeWeapon.gameObject.SetActive(true);
     }
 
     private IEnumerator HandleMeleeWeapon()

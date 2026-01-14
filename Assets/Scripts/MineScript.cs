@@ -11,13 +11,20 @@ public class MineScript : MonoBehaviour
         _animator = GetComponent<Animator>();
         StartCoroutine(YieldGold());
     }
-    
+
 
     private IEnumerator YieldGold()
     {
         while (true)
         {
-            _animator.SetTrigger(IsWorking);
+            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            {
+                _animator.SetBool(IsWorking, false);
+                yield return new WaitForSeconds(0.2f);
+                continue;
+            }
+
+            _animator.SetBool(IsWorking, true);
 
             GameManager.instance.IncreaseGold(1);
             yield return new WaitForSeconds(1f);

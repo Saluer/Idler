@@ -11,6 +11,7 @@ namespace DefaultNamespace
         public PlayerScript player { get; set; }
 
         private Rigidbody _rb;
+        private Animator _animator;
         private Vector3 _defaultPosition;
 
         [SerializeField] private float speed;
@@ -22,6 +23,7 @@ namespace DefaultNamespace
         {
             _defaultPosition = transform.position;
             _rb = GetComponent<Rigidbody>();
+            _animator = GetComponent<Animator>();
         }
 
         private void Start()
@@ -36,6 +38,11 @@ namespace DefaultNamespace
 
         private void Update()
         {
+            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            {
+                return;
+            }
+
             HandleHealth();
             HandleMovement();
         }
@@ -52,6 +59,7 @@ namespace DefaultNamespace
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
             _rb.MovePosition(newPosition);
+            _animator.SetFloat("Speed", 0.5f);
         }
 
         private void HandleHealth()
@@ -59,7 +67,7 @@ namespace DefaultNamespace
             if (health > 0) return;
 
             Debug.Log("Enemy is dead");
-            
+
             Destroy(gameObject);
             OnEnemyKilled?.Invoke();
         }
