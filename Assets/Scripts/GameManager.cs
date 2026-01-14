@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
-    private int _goldAmount;
+    public int goldAmount { get; private set; }
     public List<GameObject> enemies = new();
     public GameMode gameMode { set; get; }
 
@@ -28,8 +28,8 @@ public class GameManager : MonoBehaviour
 
     public void IncreaseGold(int amount)
     {
-        _goldAmount += amount;
-        scoreText.text = _goldAmount.ToString();
+        goldAmount += amount;
+        scoreText.text = goldAmount.ToString();
     }
 
     public GameObject GetClosestEnemyTo(Transform target)
@@ -54,8 +54,8 @@ public class GameManager : MonoBehaviour
     {
         return () =>
         {
-            _goldAmount++;
-            scoreText.text = _goldAmount.ToString();
+            goldAmount++;
+            scoreText.text = goldAmount.ToString();
         };
     }
 }

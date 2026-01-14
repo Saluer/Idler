@@ -83,14 +83,28 @@ public class PlayerScript : MonoBehaviour
             StartCoroutine(HandleRangeWeapon());
     }
 
-    public void EquipRanged()
-    {
-        _rangedWeapon.gameObject.SetActive(true);
-    }
-
     public void EquipMelee()
     {
+        if (_meleeWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 1)
+        {
+            return;
+        }
+
         _meleeWeapon.gameObject.SetActive(true);
+        //todo fix
+        GameManager.instance.IncreaseGold(-1);
+    }
+
+    public void EquipRanged()
+    {
+        if (_rangedWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 10)
+        {
+            return;
+        }
+
+        _rangedWeapon.gameObject.SetActive(true);
+        //todo fix
+        GameManager.instance.IncreaseGold(-10);
     }
 
     private IEnumerator HandleMeleeWeapon()

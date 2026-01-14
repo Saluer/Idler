@@ -58,6 +58,8 @@ namespace DefaultNamespace
 
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
+            gameObject.transform.rotation = Quaternion.LookRotation(direction);
+            
             _rb.MovePosition(newPosition);
             _animator.SetFloat("Speed", 0.5f);
         }

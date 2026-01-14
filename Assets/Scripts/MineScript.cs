@@ -17,12 +17,12 @@ public class MineScript : MonoBehaviour
     {
         while (true)
         {
-            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
-            {
-                _animator.SetBool(IsWorking, false);
-                yield return new WaitForSeconds(0.2f);
-                continue;
-            }
+            // if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            // {
+            //     _animator.SetBool(IsWorking, false);
+            //     yield return new WaitForSeconds(0.2f);
+            //     continue;
+            // }
 
             _animator.SetBool(IsWorking, true);
 
