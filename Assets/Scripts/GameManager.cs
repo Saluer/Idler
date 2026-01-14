@@ -1,17 +1,21 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DefaultNamespace;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
-    public int goldAmount { get; private set; }
-    public List<GameObject> enemies = new();
-    public GameMode gameMode { set; get; }
+    [SerializeField] private Transform spawnPosition;
+
+    [DoNotSerialize] public int goldAmount { get; private set; }
+    [DoNotSerialize] public List<GameObject> enemies = new();
+    [DoNotSerialize] public GameMode gameMode { set; get; }
 
     public static GameManager instance { get; private set; }
 
@@ -26,6 +30,43 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
+    private void Start()
+    {
+        StartCoroutine(HandleLevels());
+    }
+
+    private IEnumerator HandleLevels()
+    {
+        yield return enemyLevels.Select(levelConfig => StartCoroutine(RunLevel(levelConfig))).GetEnumerator();
+    }
+
+    private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
+    {
+        Debug.LogFormat("Running level {0}", levelConfig);
+        var spawner = Instantiate(levelConfig.enemyPreviewPrefab);
+        var spawnerScript = spawner.AddComponent<SpawnerScript>();
+        spawnerScript.config = levelConfig;
+        spawnerScript.spawnPosition = spawnPosition.position;
+        var enemyScript = spawner.gameObject.GetComponentInChildren<EnemyScript>();
+        Destroy(enemyScript);
+        spawner.gameObject.SetActive(true);
+
+        while (!spawnerScript._triggerActivated)
+        {
+            yield return null;
+        }
+
+        //todo some logic
+
+        while (enemies.Count > 0)
+        {
+            yield return null;
+        }
+
+        spawner.gameObject.SetActive(false);
+        yield return null;
+    }
+
     public void IncreaseGold(int amount)
     {
         goldAmount += amount;
@@ -35,27 +76,24 @@ public class GameManager : MonoBehaviour
     public GameObject GetClosestEnemyTo(Transform target)
     {
         return enemies
-            .Where(enemy => enemy != null)
+            .Where(enemy => enemy)
             .OrderBy(enemy => Vector3.Distance(target.position, enemy.transform.position))
             .FirstOrDefault();
     }
 
     private void OnEnable()
     {
-        EnemyScript.OnEnemyKilled += EnemyScriptOnOnEnemyKilled();
+        EnemyScript.OnEnemyKilled += EnemyScriptOnOnEnemyKilled;
     }
 
     private void OnDisable()
     {
-        EnemyScript.OnEnemyKilled -= EnemyScriptOnOnEnemyKilled();
+        EnemyScript.OnEnemyKilled -= EnemyScriptOnOnEnemyKilled;
     }
 
-    private Action EnemyScriptOnOnEnemyKilled()
+    private void EnemyScriptOnOnEnemyKilled()
     {
-        return () =>
-        {
-            goldAmount++;
-            scoreText.text = goldAmount.ToString();
-        };
+        goldAmount++;
+        scoreText.text = goldAmount.ToString();
     }
 }

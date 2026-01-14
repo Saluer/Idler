@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 namespace DefaultNamespace
@@ -11,14 +12,20 @@ namespace DefaultNamespace
         private Collider _targetCollider;
         private Collider _collider;
 
-        private bool _triggerActivated;
-        [SerializeField] private EnemyLevelConfig config;
-        [SerializeField] private Transform spawnPosition;
+        public bool _triggerActivated;
+        
+        public EnemyLevelConfig config;
+        public Vector3 spawnPosition;
 
         private void Awake()
         {
             _player = FindFirstObjectByType<PlayerScript>();
             _targetCollider = _player.GetComponent<Collider>();
+        }
+
+        private void Start()
+        {
+            var displayName = gameObject.AddComponent<TextMeshPro>();
         }
 
         private void OnTriggerEnter(Collider other)
@@ -33,10 +40,10 @@ namespace DefaultNamespace
         {
             for (var i = 0; i < times; i++)
             {
-                var spawnPositionPosition = spawnPosition.position;
+                var spawnPositionPosition = spawnPosition;
                 spawnPositionPosition = new Vector3(spawnPositionPosition.x + Random.Range(-5, 5),
                     spawnPositionPosition.y, spawnPositionPosition.z);
-                var enemy = Instantiate(config.prefab, spawnPositionPosition, Quaternion.identity)
+                var enemy = Instantiate(config.enemyPrefab, spawnPositionPosition, Quaternion.identity)
                     .GetComponent<EnemyScript>();
                 enemy.player = _player;
                 yield return new WaitForSeconds(0.1f);

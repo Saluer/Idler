@@ -18,6 +18,7 @@ namespace DefaultNamespace
 
         [SerializeField] private int damage;
         [SerializeField] private int health;
+        [SerializeField] private string displayName;
 
         private void Awake()
         {
@@ -59,7 +60,7 @@ namespace DefaultNamespace
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
             gameObject.transform.rotation = Quaternion.LookRotation(direction);
-            
+
             _rb.MovePosition(newPosition);
             _animator.SetFloat("Speed", 0.5f);
         }
@@ -81,14 +82,15 @@ namespace DefaultNamespace
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.GetComponent<PlayerScript>() == player)
+            if ( player != null && other.GetComponent<PlayerScript>() == player)
             {
-                Debug.Log("Hit player");
+                DealDamage();
             }
         }
 
-        private void DealDamage(int damage)
+        private void DealDamage()
         {
+            player.IncreaseHealth(-damage);
         }
     }
 }

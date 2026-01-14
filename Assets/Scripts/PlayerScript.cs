@@ -3,6 +3,7 @@ using System.Collections;
 using DefaultNamespace;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
@@ -85,14 +86,14 @@ public class PlayerScript : MonoBehaviour
 
     public void EquipMelee()
     {
-        if (_meleeWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 1)
+        if (_meleeWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 5)
         {
             return;
         }
 
         _meleeWeapon.gameObject.SetActive(true);
         //todo fix
-        GameManager.instance.IncreaseGold(-1);
+        GameManager.instance.IncreaseGold(-5);
     }
 
     public void EquipRanged()
@@ -188,6 +189,11 @@ public class PlayerScript : MonoBehaviour
         {
             gameObject.SetActive(false);
         }
+    }
+
+    public void IncreaseHealth(int amount)
+    {
+        _health += amount;
     }
 
     // === Send Messages callbacks ===

@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 2808970195072657018}
   - component: {fileID: 2523788537789218379}
   m_Layer: 0
-  m_Name: Enemy
+  m_Name: Enemy 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -32,7 +32,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0.03, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -70,7 +70,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 29d40d7bc239d4a038de3bfac7a888b4, type: 2}
+  - {fileID: 2100000, guid: 9788f923ecb6c4046b3bd3bb033b8c3a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -106,9 +106,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b4e08f6a9fd4fd69710e820a2d0911d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.EnemyScript
-  speed: 3
-  damage: 1
-  health: 1
+  speed: 4
+  damage: 2
+  health: 2
   displayName: 
 --- !u!54 &2226220965984560271
 Rigidbody:
