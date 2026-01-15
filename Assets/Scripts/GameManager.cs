@@ -67,7 +67,7 @@ public class GameManager : MonoBehaviour
         Destroy(enemyScript);
         spawner.gameObject.SetActive(true);
 
-        while (!spawnerScript._triggerActivated)
+        while (!spawnerScript.triggerActivated)
         {
             yield return null;
         }

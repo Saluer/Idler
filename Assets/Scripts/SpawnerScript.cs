@@ -12,9 +12,10 @@ namespace DefaultNamespace
         private Collider _targetCollider;
         private Collider _collider;
 
-        public bool _triggerActivated;
-        
+        public bool triggerActivated { private set; get; }
+
         public EnemyLevelConfig config;
+
         public Vector3 spawnPosition;
 
         private void Awake()
@@ -23,30 +24,28 @@ namespace DefaultNamespace
             _targetCollider = _player.GetComponent<Collider>();
         }
 
-        private void Start()
-        {
-            var displayName = gameObject.AddComponent<TextMeshPro>();
-        }
-
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject != _targetCollider.gameObject || _triggerActivated) return;
+            if (other.gameObject != _targetCollider.gameObject || triggerActivated) return;
 
-            _triggerActivated = true;
-            StartCoroutine(Spawn(config.enemyCount));
+            triggerActivated = true;
+            StartCoroutine(SpawnAll(config));
         }
 
-        private IEnumerator Spawn(int times)
+        private IEnumerator SpawnAll(EnemyLevelConfig enemyLevelConfig)
         {
-            for (var i = 0; i < times; i++)
+            foreach (var enemyWrapper in enemyLevelConfig.enemies)
             {
-                var spawnPositionPosition = spawnPosition;
-                spawnPositionPosition = new Vector3(spawnPositionPosition.x + Random.Range(-5, 5),
-                    spawnPositionPosition.y, spawnPositionPosition.z);
-                var enemy = Instantiate(config.enemyPrefab, spawnPositionPosition, Quaternion.identity)
-                    .GetComponent<EnemyScript>();
-                enemy.player = _player;
-                yield return new WaitForSeconds(0.1f);
+                for (var i = 0; i < enemyWrapper.count; i++)
+                {
+                    var spawnPositionPosition = spawnPosition;
+                    spawnPositionPosition = new Vector3(spawnPositionPosition.x + Random.Range(-5, 5),
+                        spawnPositionPosition.y, spawnPositionPosition.z);
+                    var enemy = Instantiate(enemyWrapper.enemyPrefab, spawnPositionPosition, Quaternion.identity)
+                        .GetComponent<EnemyScript>();
+                    enemy.player = _player;
+                    yield return new WaitForSeconds(0.1f);
+                }
             }
 
             gameObject.SetActive(false);

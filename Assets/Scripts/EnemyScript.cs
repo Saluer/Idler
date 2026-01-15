@@ -78,18 +78,22 @@ namespace DefaultNamespace
             _defaultPosition = transform.position;
 
             var direction = player.transform.position - transform.position;
-            direction = direction.normalized;
-            //todo figure out why it's there - a right place for y = 0
             direction.y = 0;
+
+            if (direction.sqrMagnitude < 0.0001f)
+                return;
+
+            direction = direction.normalized;
+
 
             var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
             newPosition.y = _defaultPosition.y;
 
             var transformRotation = Quaternion.LookRotation(direction);
-            gameObject.transform.rotation = transformRotation;
+            _rb.MoveRotation(transformRotation);
 
             _rb.MovePosition(newPosition);
-            _animator.SetFloat("Speed", 0.5f);
+            // _animator.SetFloat("Speed", 0.5f);
         }
 
         private void HandleHealth()

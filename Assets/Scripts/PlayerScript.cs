@@ -10,7 +10,7 @@ public class PlayerScript : MonoBehaviour
 {
     private static readonly int Grounded = Animator.StringToHash("grounded");
     public Action OnDeath;
-    
+
     [SerializeField] private int maxHealth;
 
     [Header("Movement")] [SerializeField] private float moveSpeed = 5f;
@@ -72,8 +72,12 @@ public class PlayerScript : MonoBehaviour
         }
 
         HandleCameraMove();
-        HandleMove();
         HandleHealth();
+    }
+
+    private void FixedUpdate()
+    {
+        HandleMove();
     }
 
     private void HandleWeapon()
@@ -186,11 +190,10 @@ public class PlayerScript : MonoBehaviour
 
     private void HandleHealth()
     {
-        if (_health <= 0)
-        {
-            gameObject.SetActive(false);
-            OnDeath();
-        }
+        if (_health > 0) return;
+
+        gameObject.SetActive(false);
+        OnDeath();
     }
 
     public void IncreaseHealth(int amount)

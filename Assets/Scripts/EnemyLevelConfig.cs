@@ -6,10 +6,15 @@ namespace DefaultNamespace
     [CreateAssetMenu(fileName = "Enemy level _", menuName = "Enemy level", order = 0)]
     public class EnemyLevelConfig : ScriptableObject
     {
-        public Dictionary<GameObject, int> enemies;
-        public GameObject enemyPrefab;
+        public List<EnemyCountWrapper> enemies;
         public GameObject enemyPreviewPrefab;
-        public int enemyCount;
         public GameObject previewPosition;
+    }
+
+    [System.Serializable]
+    public class EnemyCountWrapper
+    {
+        public int count;
+        public GameObject enemyPrefab;
     }
 }
