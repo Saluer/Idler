@@ -59,7 +59,6 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
     {
-        Debug.LogFormat("Running level {0}", levelConfig);
         var spawner = Instantiate(levelConfig.enemyPreviewPrefab);
         var spawnerScript = spawner.AddComponent<SpawnerScript>();
         spawnerScript.config = levelConfig;
@@ -72,8 +71,6 @@ public class GameManager : MonoBehaviour
         {
             yield return null;
         }
-
-        //todo some logic
 
         while (enemies.Count > 0)
         {
@@ -108,9 +105,9 @@ public class GameManager : MonoBehaviour
         EnemyScript.OnEnemyKilled -= EnemyScriptOnOnEnemyKilled;
     }
 
-    private void EnemyScriptOnOnEnemyKilled()
+    private void EnemyScriptOnOnEnemyKilled(int goldAMount)
     {
-        goldAmount++;
+        goldAmount += goldAMount;
         scoreText.text = goldAmount.ToString();
     }
 }

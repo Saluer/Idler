@@ -106,10 +106,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6b4e08f6a9fd4fd69710e820a2d0911d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.EnemyScript
-  speed: 4
+  speed: 6
   damage: 2
-  health: 2
+  health: 4
   displayName: 
+  minGold: 2
+  maxGold: 7
+  goldTextLifetime: 2
+  goldTextHeight: 2
 --- !u!54 &2226220965984560271
 Rigidbody:
   m_ObjectHideFlags: 0

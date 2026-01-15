@@ -1,25 +1,33 @@
 using System;
+using TMPro;
 using UnityEngine;
 
 namespace DefaultNamespace
 {
     [RequireComponent(typeof(Rigidbody))]
-    //todo add new enemies
     public class EnemyScript : MonoBehaviour
     {
-        public static event Action OnEnemyKilled;
+        public static event Action<int> OnEnemyKilled;
         public PlayerScript player { get; set; }
 
         private Rigidbody _rb;
         private Animator _animator;
         private Vector3 _defaultPosition;
+
         private bool _canHit;
-        private float dealtDamageTime;
+        private float _dealtDamageTime;
+
         [SerializeField] private float speed;
 
         [SerializeField] private int damage;
         [SerializeField] private int health;
         [SerializeField] private string displayName;
+
+
+        [SerializeField] private int minGold = 1;
+        [SerializeField] private int maxGold = 5;
+        [SerializeField] private float goldTextLifetime = 2f;
+        [SerializeField] private float goldTextHeight = 2f;
 
         private void Awake()
         {
@@ -62,7 +70,7 @@ namespace DefaultNamespace
         {
             if (!player) return;
 
-            if (Time.time - 1.5f >= dealtDamageTime)
+            if (Time.time - 1.5f >= _dealtDamageTime)
             {
                 _canHit = true;
             }
@@ -87,11 +95,33 @@ namespace DefaultNamespace
         private void HandleHealth()
         {
             if (health > 0) return;
-
-            Debug.Log("Enemy is dead");
+            var goldAmount = UnityEngine.Random.Range(minGold, maxGold + 1);
+            SpawnGoldText(goldAmount);
 
             Destroy(gameObject);
-            OnEnemyKilled?.Invoke();
+            OnEnemyKilled?.Invoke(goldAmount);
+        }
+
+        private void SpawnGoldText(int goldAmount)
+        {
+            var textObject = new GameObject("GoldText")
+            {
+                transform =
+                {
+                    position = transform.position + Vector3.up * goldTextHeight
+                }
+            };
+
+            var text = textObject.AddComponent<TextMeshPro>();
+            text.text = $"+{goldAmount} gold";
+            text.fontSize = 3;
+            text.alignment = TextAlignmentOptions.Center;
+            text.color = Color.yellow;
+
+            // Чтобы текст всегда смотрел на камеру (опционально, но обычно нужно)
+            // textObject.AddComponent<BillboardToCamera>();
+
+            Destroy(textObject, goldTextLifetime);
         }
 
         public void HandleHealthChange(int delta)
@@ -109,9 +139,12 @@ namespace DefaultNamespace
 
         private void DealDamage()
         {
+            if (!_canHit)
+                return;
+
             player.IncreaseHealth(-damage);
             _canHit = false;
-            dealtDamageTime = Time.time;
+            _dealtDamageTime = Time.time;
         }
     }
 }
