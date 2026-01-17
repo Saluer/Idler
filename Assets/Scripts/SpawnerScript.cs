@@ -5,7 +5,6 @@ using UnityEngine;
 namespace DefaultNamespace
 {
     [RequireComponent(typeof(Collider))]
-    //todo add changing of name, enemy preview, enemy configs dynamically based on list of configs
     public class SpawnerScript : MonoBehaviour
     {
         private PlayerScript _player;

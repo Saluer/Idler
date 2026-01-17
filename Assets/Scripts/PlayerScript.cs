@@ -97,8 +97,7 @@ public class PlayerScript : MonoBehaviour
         }
 
         _meleeWeapon.gameObject.SetActive(true);
-        //todo fix
-        GameManager.instance.IncreaseGold(-5);
+        GameManager.instance.IncrementGold(-5);
     }
 
     public void EquipRanged()
@@ -109,17 +108,22 @@ public class PlayerScript : MonoBehaviour
         }
 
         _rangedWeapon.gameObject.SetActive(true);
-        //todo fix
-        GameManager.instance.IncreaseGold(-10);
+        GameManager.instance.IncrementGold(-10);
     }
 
     private IEnumerator HandleMeleeWeapon()
     {
         while (true)
         {
-            var angle = Mathf.Sin(Time.time * swingSpeed) * swingRange;
-            _meleeWeapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
-            //todo make a swing single and add delay between it, maybe add invisibility while it's recharging
+            for (var angle = 90.0f; angle > -270.0f; angle -= 2f)
+            {
+                _meleeWeapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
+                yield return new WaitForEndOfFrame();
+            }
+
+            _meleeWeapon.gameObject.SetActive(false);
+            yield return new WaitForSeconds(3f);
+            _meleeWeapon.gameObject.SetActive(true);
             yield return null;
         }
     }

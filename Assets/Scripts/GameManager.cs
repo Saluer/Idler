@@ -81,7 +81,7 @@ public class GameManager : MonoBehaviour
         yield return null;
     }
 
-    public void IncreaseGold(int amount)
+    public void IncrementGold(int amount)
     {
         goldAmount += amount;
         scoreText.text = goldAmount.ToString();

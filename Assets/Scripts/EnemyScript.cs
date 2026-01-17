@@ -7,6 +7,7 @@ namespace DefaultNamespace
     [RequireComponent(typeof(Rigidbody))]
     public class EnemyScript : MonoBehaviour
     {
+        private static readonly int Speed = Animator.StringToHash("Speed");
         public static event Action<int> OnEnemyKilled;
         public PlayerScript player { get; set; }
 
@@ -93,7 +94,8 @@ namespace DefaultNamespace
             _rb.MoveRotation(transformRotation);
 
             _rb.MovePosition(newPosition);
-            // _animator.SetFloat("Speed", 0.5f);
+
+            _animator.SetFloat(Speed, 1f);
         }
 
         private void HandleHealth()
@@ -101,7 +103,6 @@ namespace DefaultNamespace
             if (health > 0) return;
             var goldAmount = UnityEngine.Random.Range(minGold, maxGold + 1);
             SpawnGoldText(goldAmount);
-
             Destroy(gameObject);
             OnEnemyKilled?.Invoke(goldAmount);
         }
@@ -145,7 +146,7 @@ namespace DefaultNamespace
         {
             if (!_canHit)
                 return;
-
+            
             player.IncreaseHealth(-damage);
             _canHit = false;
             _dealtDamageTime = Time.time;

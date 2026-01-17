@@ -26,7 +26,7 @@ public class MineScript : MonoBehaviour
 
             _animator.SetBool(IsWorking, true);
 
-            GameManager.instance.IncreaseGold(1);
+            GameManager.instance.IncrementGold(1);
             yield return new WaitForSeconds(3f);
         }
     }

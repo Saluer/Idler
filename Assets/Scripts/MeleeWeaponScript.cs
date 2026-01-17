@@ -14,8 +14,6 @@ public class MeleeWeaponScript : MonoBehaviour
             return;
         }
 
-        Debug.Log("Melee weapon hit");
-
         OnHitDelegate?.Invoke(enemyScript);
     }
 }
