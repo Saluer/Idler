@@ -61,7 +61,7 @@ public class PlayerScript : MonoBehaviour
 
     private void Start()
     {
-        HandleWeapon();
+        // HandleWeapon();
     }
 
     private void Update()
@@ -82,10 +82,10 @@ public class PlayerScript : MonoBehaviour
 
     private void HandleWeapon()
     {
-        if (_meleeWeapon)
+        if (_meleeWeapon && _meleeWeapon.gameObject.activeSelf)
             StartCoroutine(HandleMeleeWeapon());
 
-        if (_rangedWeapon)
+        if (_rangedWeapon && _rangedWeapon.gameObject.activeSelf)
             StartCoroutine(HandleRangeWeapon());
     }
 
@@ -97,6 +97,9 @@ public class PlayerScript : MonoBehaviour
         }
 
         _meleeWeapon.gameObject.SetActive(true);
+        _meleeWeapon.ToggleVisibility(false);
+        StartCoroutine(HandleMeleeWeapon());
+
         GameManager.instance.IncrementGold(-5);
     }
 
@@ -109,21 +112,22 @@ public class PlayerScript : MonoBehaviour
 
         _rangedWeapon.gameObject.SetActive(true);
         GameManager.instance.IncrementGold(-10);
+        StartCoroutine(HandleRangeWeapon());
     }
 
     private IEnumerator HandleMeleeWeapon()
     {
         while (true)
         {
-            for (var angle = 90.0f; angle > -270.0f; angle -= 2f)
+            _meleeWeapon.ToggleVisibility(true);
+            for (var angle = 90.0f; angle > -270.0f; angle -= 15f)
             {
                 _meleeWeapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
-                yield return new WaitForEndOfFrame();
+                yield return new WaitForFixedUpdate();
             }
 
-            _meleeWeapon.gameObject.SetActive(false);
+            _meleeWeapon.ToggleVisibility(false);
             yield return new WaitForSeconds(3f);
-            _meleeWeapon.gameObject.SetActive(true);
             yield return null;
         }
     }
