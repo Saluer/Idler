@@ -7,20 +7,24 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
     [SerializeField] private Transform spawnPosition;
-
-    [DoNotSerialize] public int goldAmount { get; private set; }
-    [DoNotSerialize] public List<GameObject> enemies = new();
-    [DoNotSerialize] public GameMode gameMode { set; get; }
     [SerializeField] private Canvas endScreen;
 
-    private PlayerScript player;
+    public int goldAmount;
+    public List<GameObject> enemies = new();
+    public GameMode gameMode { set; get; }
+
+    private PlayerScript _player;
+    public List<MineScript> mines;
     public static GameManager instance { get; private set; }
+    private int _mineCost;
+    private int _mineUpgradeCost;
 
     public enum GameMode
     {
@@ -36,13 +40,14 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        player = FindFirstObjectByType<PlayerScript>();
+        _player = FindFirstObjectByType<PlayerScript>();
         StartCoroutine(HandleLevels());
-        player.OnDeath += () =>
+        _player.OnDeath += () =>
         {
             gameMode = GameMode.End;
             endScreen.gameObject.SetActive(true);
             StartCoroutine(Restart());
+            return;
 
             IEnumerator Restart()
             {
@@ -79,6 +84,45 @@ public class GameManager : MonoBehaviour
 
         spawner.gameObject.SetActive(false);
         yield return null;
+    }
+
+    public void AddMine()
+    {
+        if (goldAmount < _mineCost)
+        {
+            return;
+        }
+
+        var pos = mines.Count == 0 ? Vector3.zero : mines[^1].transform.position;
+        switch (Random.Range(0, 3))
+        {
+            case 1:
+                pos.x += 5f;
+                break;
+            case 2:
+                pos.y += 5f;
+                break;
+            case 3:
+                pos.z += 5f;
+                break;
+        }
+
+        Instantiate(Resources.Load<GameObject>("Prefabs/Mine"), pos, Quaternion.identity);
+        IncrementGold(-_mineCost);
+        _mineCost = _mineCost * 3 + 1;
+    }
+
+    public void UpgradeMines()
+    {
+        if (goldAmount < _mineUpgradeCost)
+        {
+            return;
+        }
+
+        IncrementGold(-_mineUpgradeCost);
+        _mineUpgradeCost *= 4;
+
+        MineScript.GoldIncrement++;
     }
 
     public void IncrementGold(int amount)

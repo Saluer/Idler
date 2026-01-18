@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
 {
+    //todo app optioon for dual pistols
     private static readonly int Grounded = Animator.StringToHash("grounded");
     public Action OnDeath;
 
@@ -57,11 +58,6 @@ public class PlayerScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         if (_meleeWeapon) _meleeWeapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
-    }
-
-    private void Start()
-    {
-        // HandleWeapon();
     }
 
     private void Update()
