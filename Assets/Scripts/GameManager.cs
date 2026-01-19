@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
     [SerializeField] private Transform spawnPosition;
     [SerializeField] private Canvas endScreen;
+    [SerializeField] private Canvas timerUi;
 
     public int goldAmount;
     public List<GameObject> enemies = new();
@@ -23,8 +24,8 @@ public class GameManager : MonoBehaviour
     private PlayerScript _player;
     public List<MineScript> mines;
     public static GameManager instance { get; private set; }
-    private int _mineCost;
-    private int _mineUpgradeCost;
+    private int _mineCost = 1;
+    private int _mineUpgradeCost = 4;
 
     public enum GameMode
     {
@@ -42,6 +43,7 @@ public class GameManager : MonoBehaviour
     {
         _player = FindFirstObjectByType<PlayerScript>();
         StartCoroutine(HandleLevels());
+
         _player.OnDeath += () =>
         {
             gameMode = GameMode.End;
@@ -57,9 +59,33 @@ public class GameManager : MonoBehaviour
         };
     }
 
+    // private void HandleEnter()
+    // {
+    //     SceneManager.LoadScene("Entring scene", LoadSceneMode.Single);
+    // }
+
+
+
     private IEnumerator HandleLevels()
     {
         yield return enemyLevels.Select(levelConfig => StartCoroutine(RunLevel(levelConfig))).GetEnumerator();
+    }
+
+    private IEnumerator RunTimer(SpawnerScript spawner, EnemyLevelConfig config)
+    {
+        var textMeshProUGUI = timerUi.GetComponentInChildren<TextMeshProUGUI>();
+        textMeshProUGUI.color = Color.antiqueWhite;
+        for (var i = 5; i > 0 && !spawner.triggerActivated; i--)
+        {
+            textMeshProUGUI.text = i.ToString();
+            yield return new WaitForSeconds(1f);
+        }
+
+        textMeshProUGUI.text = "GO!!!";
+        textMeshProUGUI.color = Color.chartreuse;
+
+        yield return spawner.SpawnAll(config);
+        yield return null;
     }
 
     private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
@@ -71,6 +97,8 @@ public class GameManager : MonoBehaviour
         var enemyScript = spawner.gameObject.GetComponentInChildren<EnemyScript>();
         Destroy(enemyScript);
         spawner.gameObject.SetActive(true);
+
+        StartCoroutine(RunTimer(spawnerScript, levelConfig));
 
         while (!spawnerScript.triggerActivated)
         {
@@ -94,7 +122,7 @@ public class GameManager : MonoBehaviour
         }
 
         var pos = mines.Count == 0 ? Vector3.zero : mines[^1].transform.position;
-        switch (Random.Range(0, 3))
+        switch (Random.Range(1, 3))
         {
             case 1:
                 pos.x += 5f;

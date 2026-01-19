@@ -11,7 +11,7 @@ namespace DefaultNamespace
         private Collider _targetCollider;
         private Collider _collider;
 
-        public bool triggerActivated { private set; get; }
+        public bool triggerActivated { set; get; }
 
         public EnemyLevelConfig config;
 
@@ -25,14 +25,20 @@ namespace DefaultNamespace
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.gameObject != _targetCollider.gameObject || triggerActivated) return;
+            if (other.gameObject != _targetCollider.gameObject) return;
 
-            triggerActivated = true;
             StartCoroutine(SpawnAll(config));
         }
 
-        private IEnumerator SpawnAll(EnemyLevelConfig enemyLevelConfig)
+        public IEnumerator SpawnAll(EnemyLevelConfig enemyLevelConfig)
         {
+            if (triggerActivated)
+            {
+                yield break;
+            }
+
+            triggerActivated = true;
+
             foreach (var enemyWrapper in enemyLevelConfig.enemies)
             {
                 for (var i = 0; i < enemyWrapper.count; i++)
