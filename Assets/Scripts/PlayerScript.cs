@@ -29,8 +29,13 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField] [Range(min: 1, max: 50)]
     private float xMaxRotationAngle;
+    
+    private Vector3 _knockbackVelocity;
+    [SerializeField] private float knockbackDamping = 8f;
 
     [SerializeField] private Transform cameraPivot;
+    
+    [SerializeField] private HealthBar healthBar;
     private CharacterController _controller;
     private Animator _animator;
     private MeleeWeaponScript _meleeWeapon;
@@ -55,6 +60,7 @@ public class PlayerScript : MonoBehaviour
         _rangedWeapon.gameObject.SetActive(false);
 
         _health = maxHealth;
+        healthBar.Init(maxHealth);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         if (_meleeWeapon) _meleeWeapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
@@ -73,6 +79,11 @@ public class PlayerScript : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+        {
+            return;
+        }
+
         HandleMove();
     }
 
@@ -115,6 +126,12 @@ public class PlayerScript : MonoBehaviour
     {
         while (true)
         {
+            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            {
+                yield return new WaitForEndOfFrame();
+                continue;
+            }
+
             _meleeWeapon.ToggleVisibility(true);
             for (var angle = 90.0f; angle > -270.0f; angle -= 15f)
             {
@@ -132,6 +149,12 @@ public class PlayerScript : MonoBehaviour
     {
         while (true)
         {
+            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            {
+                yield return new WaitForEndOfFrame();
+                continue;
+            }
+
             var closestEnemy = GameManager.instance.GetClosestEnemyTo(transform);
 
             if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out var component)))
@@ -188,8 +211,14 @@ public class PlayerScript : MonoBehaviour
 
         _velocity.y += gravity * Time.deltaTime;
 
-        var displacement = (move * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime;
+        var displacement = ((move + _knockbackVelocity) * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime;
         _controller.Move(displacement);
+        
+        _knockbackVelocity = Vector3.Lerp(
+            _knockbackVelocity,
+            Vector3.zero,
+            knockbackDamping * Time.deltaTime
+        );
     }
 
     private void HandleHealth()
@@ -200,9 +229,18 @@ public class PlayerScript : MonoBehaviour
         OnDeath();
     }
 
-    public void IncreaseHealth(int amount)
+    public void IncreaseHealth(int delta)
     {
-        _health += amount;
+        _health = Mathf.Clamp(_health + delta, 0, maxHealth);
+        healthBar.SetHealth(_health);
+    }
+    
+    public void ApplyKnockback(Vector3 direction, float force)
+    {
+        direction.y = 0;
+        direction.Normalize();
+
+        _knockbackVelocity = direction * force;
     }
 
     // === Send Messages callbacks ===

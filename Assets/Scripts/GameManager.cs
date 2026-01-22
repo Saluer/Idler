@@ -1,10 +1,8 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DefaultNamespace;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
@@ -16,6 +14,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform spawnPosition;
     [SerializeField] private Canvas endScreen;
     [SerializeField] private Canvas timerUi;
+    [SerializeField] private GameObject playerSpawnPoint;
 
     public int goldAmount;
     public List<GameObject> enemies = new();
@@ -59,13 +58,6 @@ public class GameManager : MonoBehaviour
         };
     }
 
-    // private void HandleEnter()
-    // {
-    //     SceneManager.LoadScene("Entring scene", LoadSceneMode.Single);
-    // }
-
-
-
     private IEnumerator HandleLevels()
     {
         yield return enemyLevels.Select(levelConfig => StartCoroutine(RunLevel(levelConfig))).GetEnumerator();
@@ -84,8 +76,11 @@ public class GameManager : MonoBehaviour
         textMeshProUGUI.text = "GO!!!";
         textMeshProUGUI.color = Color.chartreuse;
 
+        var characterController = _player.GetComponent<CharacterController>();
+        characterController.enabled = false;
+        _player.transform.position = playerSpawnPoint.transform.position;
+        characterController.enabled = true;
         yield return spawner.SpawnAll(config);
-        yield return null;
     }
 
     private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
@@ -122,15 +117,12 @@ public class GameManager : MonoBehaviour
         }
 
         var pos = mines.Count == 0 ? Vector3.zero : mines[^1].transform.position;
-        switch (Random.Range(1, 3))
+        switch (Random.Range(1, 2))
         {
             case 1:
                 pos.x += 5f;
                 break;
             case 2:
-                pos.y += 5f;
-                break;
-            case 3:
                 pos.z += 5f;
                 break;
         }

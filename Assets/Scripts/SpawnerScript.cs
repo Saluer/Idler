@@ -11,7 +11,7 @@ namespace DefaultNamespace
         private Collider _targetCollider;
         private Collider _collider;
 
-        public bool triggerActivated { set; get; }
+        public bool triggerActivated { private set; get; }
 
         public EnemyLevelConfig config;
 
@@ -49,7 +49,7 @@ namespace DefaultNamespace
                     var enemy = Instantiate(enemyWrapper.enemyPrefab, spawnPositionPosition, Quaternion.identity)
                         .GetComponent<EnemyScript>();
                     enemy.player = _player;
-                    yield return new WaitForSeconds(0.1f);
+                    yield return new WaitForSeconds(0.5f);
                 }
             }
 

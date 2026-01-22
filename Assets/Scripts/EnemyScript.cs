@@ -134,9 +134,10 @@ namespace DefaultNamespace
             health += delta;
         }
 
-        private void OnTriggerEnter(Collider other)
+        private void OnCollisionEnter(Collision other)
         {
-            if (player != null && other.GetComponent<PlayerScript>() == player)
+            Debug.Log(other.gameObject.name);
+            if (player != null && other.gameObject.GetComponent<PlayerScript>() == player)
             {
                 DealDamage();
             }
@@ -146,8 +147,10 @@ namespace DefaultNamespace
         {
             if (!_canHit)
                 return;
-            
+
+            Debug.Log("Dealing damage");
             player.IncreaseHealth(-damage);
+            player.ApplyKnockback((player.transform.position - transform.position).normalized, damage);
             _canHit = false;
             _dealtDamageTime = Time.time;
         }
