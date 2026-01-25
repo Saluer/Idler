@@ -27,7 +27,11 @@ namespace DefaultNamespace
 
             var direction = (target - transform.position).normalized;
             bullet.transform.rotation = Quaternion.LookRotation(direction);
-            bulletInstance.OnHitDelegate += param => { param.HandleHealthChange(-(int)damage); };
+            bulletInstance.OnHitDelegate += param =>
+            {
+                var damageToEnemy = -(int)damage + -BuffHub.MoneyIsStrength * GameManager.instance.goldAmount / 100;
+                param.HandleHealthChange(damageToEnemy);
+            };
 
             rb.AddForce(direction * range, ForceMode.Impulse);
 

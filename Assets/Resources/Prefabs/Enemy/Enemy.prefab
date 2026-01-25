@@ -655,7 +655,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.EnemyScript
   speed: 3
   damage: 1
-  health: 1
+  maxHealth: 1
   displayName: 
   minGold: 1
   maxGold: 5

@@ -22,7 +22,12 @@ public class ShopScript : MonoBehaviour
     private void Update()
     {
         if (!_playerInside)
-            return;
+        {
+            shopCanvas.gameObject.SetActive(false);
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+            GameManager.instance.gameMode = GameManager.GameMode.Active;
+        }
 
         if (Input.GetKeyDown(KeyCode.E))
         {

@@ -162,7 +162,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u041D\u0435\u0445\u0438\u043B\u044B\u0439 \u0432\u0440\u0430\u0433"
+  m_text: "\u0427\u0435\u043C\u043F\u0438\u043E\u043D\u044B"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -171,8 +171,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4279769228
-  m_fontColor: {r: 0.5471698, g: 0.09549662, b: 0.09549662, a: 1}
+    rgba: 4289584895
+  m_fontColor: {r: 1, g: 0.8705883, b: 0.6784314, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:

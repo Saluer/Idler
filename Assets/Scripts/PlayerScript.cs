@@ -29,12 +29,12 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField] [Range(min: 1, max: 50)]
     private float xMaxRotationAngle;
-    
+
     private Vector3 _knockbackVelocity;
     [SerializeField] private float knockbackDamping = 8f;
 
     [SerializeField] private Transform cameraPivot;
-    
+
     [SerializeField] private HealthBar healthBar;
     private CharacterController _controller;
     private Animator _animator;
@@ -60,9 +60,13 @@ public class PlayerScript : MonoBehaviour
         _rangedWeapon.gameObject.SetActive(false);
 
         _health = maxHealth;
-        healthBar.Init(maxHealth);
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+    }
+
+    private void Start()
+    {
+        healthBar.Init(maxHealth);
         if (_meleeWeapon) _meleeWeapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
     }
 
@@ -213,7 +217,7 @@ public class PlayerScript : MonoBehaviour
 
         var displacement = ((move + _knockbackVelocity) * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime;
         _controller.Move(displacement);
-        
+
         _knockbackVelocity = Vector3.Lerp(
             _knockbackVelocity,
             Vector3.zero,
@@ -225,6 +229,13 @@ public class PlayerScript : MonoBehaviour
     {
         if (_health > 0) return;
 
+        if (BuffHub.ExtraLife > 0)
+        {
+            _health = maxHealth;
+            BuffHub.ExtraLife--;
+            return;
+        }
+
         gameObject.SetActive(false);
         OnDeath();
     }
@@ -234,13 +245,24 @@ public class PlayerScript : MonoBehaviour
         _health = Mathf.Clamp(_health + delta, 0, maxHealth);
         healthBar.SetHealth(_health);
     }
-    
+
     public void ApplyKnockback(Vector3 direction, float force)
     {
         direction.y = 0;
         direction.Normalize();
 
         _knockbackVelocity = direction * force;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (BuffHub.FireTouchDamage != 0)
+        {
+            if (collision.gameObject.TryGetComponent<EnemyScript>(out var enemy))
+            {
+                enemy.IncreaseHealth(-BuffHub.FireTouchDamage);
+            }
+        }
     }
 
     // === Send Messages callbacks ===

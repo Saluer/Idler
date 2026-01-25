@@ -17,11 +17,12 @@ namespace DefaultNamespace
 
         private bool _canHit;
         private float _dealtDamageTime;
+        private int _health;
 
         [SerializeField] private float speed;
 
         [SerializeField] private int damage;
-        [SerializeField] private int health;
+        [SerializeField] private int maxHealth;
         [SerializeField] private string displayName;
 
 
@@ -39,6 +40,7 @@ namespace DefaultNamespace
 
         private void Start()
         {
+            _health = maxHealth;
             GameManager.instance.enemies.Add(gameObject);
         }
 
@@ -98,9 +100,15 @@ namespace DefaultNamespace
             _animator.SetFloat(Speed, 1f);
         }
 
+        public void IncreaseHealth(int delta)
+        {
+            _health = Mathf.Clamp(_health + delta, 0, maxHealth);
+        }
+
         private void HandleHealth()
         {
-            if (health > 0) return;
+            if (_health > 0) return;
+
             var goldAmount = UnityEngine.Random.Range(minGold, maxGold + 1);
             SpawnGoldText(goldAmount);
             Destroy(gameObject);
@@ -123,15 +131,32 @@ namespace DefaultNamespace
             text.alignment = TextAlignmentOptions.Center;
             text.color = Color.yellow;
 
-            // Чтобы текст всегда смотрел на камеру (опционально, но обычно нужно)
-            // textObject.AddComponent<BillboardToCamera>();
+            // textObject.AddComponent<BillBoardScript>();
 
             Destroy(textObject, goldTextLifetime);
         }
 
         public void HandleHealthChange(int delta)
         {
-            health += delta;
+            _health += delta;
+
+            var textObject = new GameObject("DamageText")
+            {
+                transform =
+                {
+                    position = transform.position + Vector3.up * 3f
+                }
+            };
+
+            var text = textObject.AddComponent<TextMeshPro>();
+            text.text = $"+{delta} hp";
+            text.fontSize = 3;
+            text.alignment = TextAlignmentOptions.Center;
+            text.color = Color.darkRed;
+
+            // textObject.AddComponent<BillBoardScript>();
+
+            Destroy(textObject, 1f);
         }
 
         private void OnCollisionEnter(Collision other)
@@ -148,7 +173,6 @@ namespace DefaultNamespace
             if (!_canHit)
                 return;
 
-            Debug.Log("Dealing damage");
             player.IncreaseHealth(-damage);
             player.ApplyKnockback((player.transform.position - transform.position).normalized, damage);
             _canHit = false;

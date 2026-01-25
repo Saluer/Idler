@@ -1,4 +1,6 @@
 using System.Collections;
+using DefaultNamespace;
+using TMPro;
 using UnityEngine;
 
 public class MineScript : MonoBehaviour
@@ -14,7 +16,6 @@ public class MineScript : MonoBehaviour
         GameManager.instance.mines.Add(this);
     }
 
-
     private IEnumerator YieldGold()
     {
         while (true)
@@ -28,7 +29,27 @@ public class MineScript : MonoBehaviour
             _animator.SetBool(IsWorking, true);
 
             GameManager.instance.IncrementGold(GoldIncrement);
+            SpawnGoldText(GoldIncrement);
             yield return new WaitForSeconds(3f);
         }
+    }
+
+    private void SpawnGoldText(int goldAmount)
+    {
+        var textObject = new GameObject("GoldText")
+        {
+            transform =
+            {
+                position = transform.position + Vector3.up * 3f
+            }
+        };
+
+        var text = textObject.AddComponent<TextMeshPro>();
+        text.text = $"+{goldAmount} gold";
+        text.fontSize = 3;
+        text.alignment = TextAlignmentOptions.Center;
+        text.color = Color.yellow;
+
+        Destroy(textObject, 1f);
     }
 }

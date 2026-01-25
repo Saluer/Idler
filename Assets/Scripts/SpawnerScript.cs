@@ -51,6 +51,8 @@ namespace DefaultNamespace
                     enemy.player = _player;
                     yield return new WaitForSeconds(0.5f);
                 }
+
+                yield return new WaitForSeconds(3f);
             }
 
             gameObject.SetActive(false);

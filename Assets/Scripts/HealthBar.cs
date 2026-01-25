@@ -21,9 +21,8 @@ public class HealthBar : MonoBehaviour
 
     public void SetHealth(int currentHealth)
     {
-        Debug.Log(_fillImage);
         if (_maxHealth <= 0) return;
-        
+
         _fillImage.fillAmount = (float)currentHealth / _maxHealth;
     }
 }

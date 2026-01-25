@@ -15,13 +15,14 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Canvas endScreen;
     [SerializeField] private Canvas timerUi;
     [SerializeField] private GameObject playerSpawnPoint;
+    [SerializeField] private ArenaBuilder arenaBuilder;
 
     public int goldAmount;
-    public List<GameObject> enemies = new();
+    [HideInInspector] public List<GameObject> enemies = new();
     public GameMode gameMode { set; get; }
 
     private PlayerScript _player;
-    public List<MineScript> mines;
+    [HideInInspector] public List<MineScript> mines;
     public static GameManager instance { get; private set; }
     private int _mineCost = 1;
     private int _mineUpgradeCost = 4;
@@ -76,6 +77,7 @@ public class GameManager : MonoBehaviour
         textMeshProUGUI.text = "GO!!!";
         textMeshProUGUI.color = Color.chartreuse;
 
+        arenaBuilder.Build();
         var characterController = _player.GetComponent<CharacterController>();
         characterController.enabled = false;
         _player.transform.position = playerSpawnPoint.transform.position;
@@ -94,6 +96,7 @@ public class GameManager : MonoBehaviour
         spawner.gameObject.SetActive(true);
 
         StartCoroutine(RunTimer(spawnerScript, levelConfig));
+
 
         while (!spawnerScript.triggerActivated)
         {
@@ -127,7 +130,7 @@ public class GameManager : MonoBehaviour
                 break;
         }
 
-        Instantiate(Resources.Load<GameObject>("Prefabs/Mine"), pos, Quaternion.identity);
+        var mine = Instantiate(Resources.Load<GameObject>("Prefabs/Mine"), pos, Quaternion.identity);
         IncrementGold(-_mineCost);
         _mineCost = _mineCost * 3 + 1;
     }
