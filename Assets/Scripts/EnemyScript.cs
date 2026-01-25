@@ -69,16 +69,13 @@ namespace DefaultNamespace
             HandleMovement();
         }
 
+        //todo fix random jumping, while not breaking falling from the start
         private void HandleMovement()
         {
             if (!player) return;
 
             if (Time.time - 1.5f >= _dealtDamageTime)
-            {
                 _canHit = true;
-            }
-
-            _defaultPosition = transform.position;
 
             var direction = player.transform.position - transform.position;
             direction.y = 0;
@@ -86,19 +83,20 @@ namespace DefaultNamespace
             if (direction.sqrMagnitude < 0.0001f)
                 return;
 
-            direction = direction.normalized;
+            direction.Normalize();
 
+            // сохраняем текущую вертикальную скорость (гравитация!)
+            var velocity = _rb.linearVelocity;
+            velocity.x = direction.x * speed;
+            velocity.z = direction.z * speed;
 
-            var newPosition = _rb.position + direction * (speed * Time.fixedDeltaTime);
-            newPosition.y = _defaultPosition.y;
+            _rb.linearVelocity = velocity;
 
-            var transformRotation = Quaternion.LookRotation(direction);
-            _rb.MoveRotation(transformRotation);
-
-            _rb.MovePosition(newPosition);
+            _rb.rotation = Quaternion.LookRotation(direction);
 
             _animator.SetFloat(Speed, 1f);
         }
+
 
         public void IncreaseHealth(int delta)
         {
