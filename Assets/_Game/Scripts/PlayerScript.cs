@@ -38,7 +38,7 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private HealthBar healthBar;
     private CharacterController _controller;
     private Animator _animator;
-    private MeleeWeaponScript _meleeWeapon;
+    private SwordScript _meleeWeapon;
     private RangedWeaponScript _rangedWeapon;
 
     private int _health;
@@ -53,7 +53,7 @@ public class PlayerScript : MonoBehaviour
     {
         _controller = GetComponent<CharacterController>();
         _animator = GetComponentInChildren<Animator>();
-        _meleeWeapon = GetComponentInChildren<MeleeWeaponScript>();
+        _meleeWeapon = GetComponentInChildren<SwordScript>();
         _rangedWeapon = GetComponentInChildren<RangedWeaponScript>();
 
         _meleeWeapon.gameObject.SetActive(false);
@@ -67,7 +67,7 @@ public class PlayerScript : MonoBehaviour
     private void Start()
     {
         healthBar.Init(maxHealth);
-        if (_meleeWeapon) _meleeWeapon.OnHitDelegate += param => { param.HandleHealthChange(-1); };
+        if (_meleeWeapon && _meleeWeapon.hitbox) _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
     }
 
     private void Update()

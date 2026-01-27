@@ -9,6 +9,8 @@ using Random = UnityEngine.Random;
 
 public class GameManager : MonoBehaviour
 {
+    public static event System.Action OnForceCloseShop;
+    
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
     [SerializeField] private Transform spawnPosition;
@@ -28,14 +30,14 @@ public class GameManager : MonoBehaviour
     private int _mineCost = 1;
     private int _mineUpgradeCost = 4;
 
-
     private bool _isExitMenuOpen;
 
     public enum GameMode
     {
         Active,
         Shop,
-        End
+        End,
+        MainMenu
     }
 
     private void Awake()
@@ -164,14 +166,32 @@ public class GameManager : MonoBehaviour
         if (gameMode == GameMode.End)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (!Input.GetKeyDown(KeyCode.Escape))
+            return;
+
+        // Если Exit уже открыт — закрываем его
+        if (_isExitMenuOpen)
         {
-            ToggleExitMenu();
+            CloseExitMenu();
+            return;
+        }
+
+        // Exit должен сработать всегда:
+        // если открыт магазин — сначала закрываем магазин принудительно
+        if (gameMode == GameMode.Shop)
+        {
+            OnForceCloseShop?.Invoke();
+        }
+        else
+        {
+            OpenExitMenu();
         }
     }
 
+
     private void ToggleExitMenu()
     {
+        gameMode = gameMode == GameMode.Active ? GameMode.MainMenu : GameMode.Active;
         _isExitMenuOpen = !_isExitMenuOpen;
 
         exitConfirmCanvas.gameObject.SetActive(_isExitMenuOpen);
@@ -187,16 +207,67 @@ public class GameManager : MonoBehaviour
 
     public void ConfirmExit()
     {
-        Debug.Log("Confirm exit");
         Time.timeScale = 1f;
         Application.Quit();
     }
 
     public void CancelExit()
     {
-        Debug.Log("Cancel exit");
         Time.timeScale = 1f;
         ToggleExitMenu();
+    }
+
+    public void OpenShop(Canvas shopCanvas)
+    {
+        CloseAllMenus();
+
+        gameMode = GameMode.Shop;
+        shopCanvas.gameObject.SetActive(true);
+
+        Time.timeScale = 0f;
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    public void CloseShop(Canvas shopCanvas)
+    {
+        shopCanvas.gameObject.SetActive(false);
+
+        gameMode = GameMode.Active;
+        Time.timeScale = 1f;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    private void OpenExitMenu()
+    {
+        _isExitMenuOpen = true;
+        gameMode = GameMode.MainMenu;
+
+        exitConfirmCanvas.gameObject.SetActive(true);
+        Time.timeScale = 0f;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void CloseExitMenu()
+    {
+        _isExitMenuOpen = false;
+        gameMode = GameMode.Active;
+
+        exitConfirmCanvas.gameObject.SetActive(false);
+        Time.timeScale = 1f;
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+
+    private void CloseAllMenus()
+    {
+        exitConfirmCanvas.gameObject.SetActive(false);
+        // сюда можно добавить другие Canvas при необходимости
     }
 
     public GameObject GetClosestEnemyTo(Transform target)
