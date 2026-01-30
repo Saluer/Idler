@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace DefaultNamespace
 {
@@ -30,6 +32,11 @@ namespace DefaultNamespace
         [SerializeField] private int maxGold = 5;
         [SerializeField] private float goldTextLifetime = 2f;
         [SerializeField] private float goldTextHeight = 2f;
+
+        [Header("Chest drop")] [SerializeField, Range(0f, 1f)]
+        private float chestDropChance = 0.15f;
+
+        [SerializeField] private List<GameObject> chestPrefabs;
 
         private void Awake()
         {
@@ -107,10 +114,38 @@ namespace DefaultNamespace
         {
             if (_health > 0) return;
 
-            var goldAmount = UnityEngine.Random.Range(minGold, maxGold + 1);
+            var goldAmount = Random.Range(minGold, maxGold + 1);
             SpawnGoldText(goldAmount);
+
+            TrySpawnChest();
+
             Destroy(gameObject);
             OnEnemyKilled?.Invoke(goldAmount);
+        }
+
+        private void TrySpawnChest()
+        {
+            if (chestPrefabs.Count == 0)
+                return;
+
+            if (Random.value > chestDropChance)
+                return;
+
+            var prefab = chestPrefabs[Random.Range(0, chestPrefabs.Count)];
+
+            var chest = Instantiate(
+                prefab,
+                transform.position,
+                Quaternion.identity
+            );
+
+            if (chest.TryGetComponent<Collider>(out var col))
+            {
+                var offsetY = col.bounds.extents.y;
+                chest.transform.position += Vector3.up * offsetY;
+            }
+
+            Destroy(chest, 10f);
         }
 
         private void SpawnGoldText(int goldAmount)
@@ -136,7 +171,7 @@ namespace DefaultNamespace
 
         public void HandleHealthChange(int delta)
         {
-            _health += delta;
+            IncreaseHealth(delta);
 
             var textObject = new GameObject("DamageText")
             {

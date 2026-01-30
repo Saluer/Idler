@@ -661,6 +661,10 @@ MonoBehaviour:
   maxGold: 5
   goldTextLifetime: 2
   goldTextHeight: 2
+  chestDropChance: 0.15
+  chestPrefabs:
+  - {fileID: 1507584035336223756, guid: e83690000bd4b452ba2561711e89de97, type: 3}
+  - {fileID: 1507584035336223756, guid: 50e2b06b30b4349d88f8e6868f107b22, type: 3}
 --- !u!54 &2226220965984560271
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -9,7 +9,8 @@ using UnityEngine.SceneManagement;
 public class PlayerScript : MonoBehaviour
 {
     //todo app optioon for dual pistols
-    private static readonly int Grounded = Animator.StringToHash("grounded");
+    // private static readonly int Grounded = Animator.StringToHash("grounded");
+    private static readonly int Exit = Animator.StringToHash("Exit");
     public Action OnDeath;
 
     [SerializeField] private int maxHealth;
@@ -23,6 +24,9 @@ public class PlayerScript : MonoBehaviour
 
     [SerializeField] [Range(min: 10, max: 90)]
     private float swingRange = 5f;
+
+    [SerializeField] [Range(min: 1, max: 20)]
+    private float attackSpeed = 1f;
 
     [Header("Camera")] [SerializeField] [Range(min: 1, max: 100)]
     private float mouseSensitivity;
@@ -56,8 +60,7 @@ public class PlayerScript : MonoBehaviour
         _meleeWeapon = GetComponentInChildren<SwordScript>();
         _rangedWeapon = GetComponentInChildren<RangedWeaponScript>();
 
-        _meleeWeapon.gameObject.SetActive(false);
-        _rangedWeapon.gameObject.SetActive(false);
+
 
         _health = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
@@ -69,6 +72,10 @@ public class PlayerScript : MonoBehaviour
         healthBar.Init(maxHealth);
         if (_meleeWeapon && _meleeWeapon.hitbox)
             _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
+                _meleeWeapon.gameObject.SetActive(false);
+        _rangedWeapon.gameObject.SetActive(false);
+        _animator.SetBool(Exit, true);
+        
     }
 
     private void Update()
@@ -161,15 +168,15 @@ public class PlayerScript : MonoBehaviour
             }
 
             var closestEnemy = GameManager.instance.GetClosestEnemyTo(transform);
-
+            var reloadTime = 1 / attackSpeed;
             if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out var component)))
             {
-                yield return new WaitForSeconds(1f);
+                yield return new WaitForSeconds(reloadTime);
                 continue;
             }
 
             _rangedWeapon.Fire(closestEnemy.transform);
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(reloadTime);
         }
     }
 
@@ -199,8 +206,7 @@ public class PlayerScript : MonoBehaviour
             transform.right * _moveInput.x +
             transform.forward * _moveInput.y;
 
-        _animator.SetBool(Grounded, _controller.isGrounded);
-
+        
         if (_controller.isGrounded)
         {
             if (_velocity.y < 0)
@@ -265,6 +271,30 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    public void ApplySpeedBuff(float bonus, float duration)
+    {
+        StartCoroutine(SpeedBuffCoroutine(bonus, duration));
+    }
+
+    private IEnumerator SpeedBuffCoroutine(float bonus, float duration)
+    {
+        moveSpeed += bonus;
+        yield return new WaitForSeconds(duration);
+        moveSpeed -= bonus;
+    }
+
+    public void ApplyAttackSpeedBuff(float bonus, float duration)
+    {
+        StartCoroutine(SpeedAttackBuffCoroutine(bonus, duration));
+    }
+
+    private IEnumerator SpeedAttackBuffCoroutine(float bonus, float duration)
+    {
+        attackSpeed += bonus;
+        yield return new WaitForSeconds(duration);
+        attackSpeed -= bonus;
+    }
+    
     // === Send Messages callbacks ===
 
     public void OnMove(InputValue value)
