@@ -4,11 +4,11 @@ namespace DefaultNamespace
 {
     public class RangedWeaponScript : MonoBehaviour
     {
-        [SerializeField] private MeleeWeaponScript bullet;
+        [SerializeField] private BulletScript bullet;
         [SerializeField] private float damage;
         [SerializeField] private float range;
 
-        public void Fire(Vector3 target)
+        public void Fire(Transform target)
         {
             if (!gameObject.activeSelf)
             {
@@ -25,15 +25,16 @@ namespace DefaultNamespace
                 return;
             }
 
-            var direction = (target - transform.position).normalized;
+            var direction = (target.position - transform.position).normalized;
             bullet.transform.rotation = Quaternion.LookRotation(direction);
+            bullet.target = target;
+            
+            bulletInstance.GetComponent<Rigidbody>().AddForce(direction * damage, ForceMode.Impulse);
             bulletInstance.OnHitDelegate += param =>
             {
                 var damageToEnemy = -(int)damage + -BuffHub.MoneyIsStrength * GameManager.instance.goldAmount / 100;
                 param.HandleHealthChange(damageToEnemy);
             };
-
-            rb.AddForce(direction * range, ForceMode.Impulse);
 
             Destroy(bulletInstance, 3f);
         }

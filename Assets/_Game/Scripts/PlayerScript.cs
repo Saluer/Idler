@@ -67,7 +67,8 @@ public class PlayerScript : MonoBehaviour
     private void Start()
     {
         healthBar.Init(maxHealth);
-        if (_meleeWeapon && _meleeWeapon.hitbox) _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
+        if (_meleeWeapon && _meleeWeapon.hitbox)
+            _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
     }
 
     private void Update()
@@ -167,8 +168,7 @@ public class PlayerScript : MonoBehaviour
                 continue;
             }
 
-            var center = component.bounds.center;
-            _rangedWeapon.Fire(center);
+            _rangedWeapon.Fire(closestEnemy.transform);
             yield return new WaitForSeconds(1f);
         }
     }
