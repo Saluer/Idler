@@ -10,7 +10,8 @@ using Random = UnityEngine.Random;
 public class GameManager : MonoBehaviour
 {
     public static event System.Action OnForceCloseShop;
-    
+
+    [SerializeField] private int timeBetweenRounds = 60;
     [SerializeField] private TextMeshProUGUI scoreText;
     [SerializeField] private List<EnemyLevelConfig> enemyLevels;
     [SerializeField] private Transform spawnPosition;
@@ -75,7 +76,7 @@ public class GameManager : MonoBehaviour
     {
         var textMeshProUGUI = timerUi.GetComponentInChildren<TextMeshProUGUI>();
         textMeshProUGUI.color = Color.antiqueWhite;
-        for (var i = 5; i > 0 && !spawner.triggerActivated; i--)
+        for (var i = timeBetweenRounds; i > 0 && !spawner.triggerActivated; i--)
         {
             textMeshProUGUI.text = i.ToString();
             yield return new WaitForSeconds(1f);
@@ -168,16 +169,13 @@ public class GameManager : MonoBehaviour
 
         if (!Input.GetKeyDown(KeyCode.Escape))
             return;
-
-        // Если Exit уже открыт — закрываем его
+        
         if (_isExitMenuOpen)
         {
             CloseExitMenu();
             return;
         }
 
-        // Exit должен сработать всегда:
-        // если открыт магазин — сначала закрываем магазин принудительно
         if (gameMode == GameMode.Shop)
         {
             OnForceCloseShop?.Invoke();
@@ -267,7 +265,6 @@ public class GameManager : MonoBehaviour
     private void CloseAllMenus()
     {
         exitConfirmCanvas.gameObject.SetActive(false);
-        // сюда можно добавить другие Canvas при необходимости
     }
 
     public GameObject GetClosestEnemyTo(Transform target)

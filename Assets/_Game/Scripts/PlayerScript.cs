@@ -1,9 +1,9 @@
 using System;
 using System.Collections;
 using DefaultNamespace;
+using DefaultNamespace.weapon;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
@@ -43,7 +43,7 @@ public class PlayerScript : MonoBehaviour
     private CharacterController _controller;
     private Animator _animator;
     private SwordScript _meleeWeapon;
-    private RangedWeaponScript _rangedWeapon;
+    private RangedWeaponBase _rangedWeapon;
 
     private int _health;
     private Vector3 _velocity;
@@ -58,9 +58,7 @@ public class PlayerScript : MonoBehaviour
         _controller = GetComponent<CharacterController>();
         _animator = GetComponentInChildren<Animator>();
         _meleeWeapon = GetComponentInChildren<SwordScript>();
-        _rangedWeapon = GetComponentInChildren<RangedWeaponScript>();
-
-
+        _rangedWeapon = GetComponentInChildren<RangedWeaponBase>();
 
         _health = maxHealth;
         Cursor.lockState = CursorLockMode.Locked;
@@ -72,10 +70,10 @@ public class PlayerScript : MonoBehaviour
         healthBar.Init(maxHealth);
         if (_meleeWeapon && _meleeWeapon.hitbox)
             _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
-                _meleeWeapon.gameObject.SetActive(false);
-        _rangedWeapon.gameObject.SetActive(false);
-        _animator.SetBool(Exit, true);
         
+        _meleeWeapon.gameObject.SetActive(false);
+        _rangedWeapon.gameObject.SetActive(false);
+        HandleWeapon();
     }
 
     private void Update()
@@ -101,11 +99,8 @@ public class PlayerScript : MonoBehaviour
 
     private void HandleWeapon()
     {
-        if (_meleeWeapon && _meleeWeapon.gameObject.activeSelf)
-            StartCoroutine(HandleMeleeWeapon());
-
-        if (_rangedWeapon && _rangedWeapon.gameObject.activeSelf)
-            StartCoroutine(HandleRangeWeapon());
+        StartCoroutine(HandleMeleeWeapon());
+        StartCoroutine(HandleRangeWeapon());
     }
 
     public void EquipMelee()
@@ -138,7 +133,8 @@ public class PlayerScript : MonoBehaviour
     {
         while (true)
         {
-            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            if (!_meleeWeapon || _meleeWeapon.gameObject.activeSelf ||
+                GameManager.instance.gameMode != GameManager.GameMode.Active)
             {
                 yield return new WaitForEndOfFrame();
                 continue;
@@ -161,7 +157,8 @@ public class PlayerScript : MonoBehaviour
     {
         while (true)
         {
-            if (GameManager.instance.gameMode != GameManager.GameMode.Active)
+            if (!_meleeWeapon || _meleeWeapon.gameObject.activeSelf ||
+                GameManager.instance.gameMode != GameManager.GameMode.Active)
             {
                 yield return new WaitForEndOfFrame();
                 continue;
@@ -169,7 +166,7 @@ public class PlayerScript : MonoBehaviour
 
             var closestEnemy = GameManager.instance.GetClosestEnemyTo(transform);
             var reloadTime = 1 / attackSpeed;
-            if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out var component)))
+            if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out _)))
             {
                 yield return new WaitForSeconds(reloadTime);
                 continue;
@@ -206,7 +203,6 @@ public class PlayerScript : MonoBehaviour
             transform.right * _moveInput.x +
             transform.forward * _moveInput.y;
 
-        
         if (_controller.isGrounded)
         {
             if (_velocity.y < 0)
@@ -294,7 +290,7 @@ public class PlayerScript : MonoBehaviour
         yield return new WaitForSeconds(duration);
         attackSpeed -= bonus;
     }
-    
+
     // === Send Messages callbacks ===
 
     public void OnMove(InputValue value)

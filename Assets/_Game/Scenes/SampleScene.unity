@@ -1035,6 +1035,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DefaultNamespace.SwordHitbox
   damage: 10
+--- !u!4 &316912646 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+  m_PrefabInstance: {fileID: 790211723}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &324277861
 GameObject:
   m_ObjectHideFlags: 0
@@ -2086,6 +2091,7 @@ Transform:
   - {fileID: 1810230603}
   - {fileID: 1857304879}
   - {fileID: 1033649981}
+  - {fileID: 316912646}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &629084449
@@ -2835,6 +2841,63 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1001 &790211723
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 629084448}
+    m_Modifications:
+    - target: {fileID: 4425877635396740563, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_Name
+      value: Shotgun
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.426
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.571
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8863940780180772054, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e4be5963790b74944b0ed5d2a2ca1f0d, type: 3}
 --- !u!1 &827757468
 GameObject:
   m_ObjectHideFlags: 0
@@ -5477,12 +5540,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a8ac35965f9c4b73b8ec6c481ef4e13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  timeBetweenRounds: 60
   scoreText: {fileID: 93491581}
   enemyLevels:
   - {fileID: 11400000, guid: 8877ddf2086974c4d84b11dcede0c1e6, type: 2}
   - {fileID: 11400000, guid: b86408413108c4e7680ec9f7d903ec44, type: 2}
   - {fileID: 11400000, guid: 9890729a784d5458f8914982372ac673, type: 2}
-  - {fileID: 11400000, guid: 8877ddf2086974c4d84b11dcede0c1e6, type: 2}
   - {fileID: 11400000, guid: 270e7219e9d774c02b880603782e0a72, type: 2}
   spawnPosition: {fileID: 485184608}
   endScreen: {fileID: 940632590}
@@ -5490,7 +5553,7 @@ MonoBehaviour:
   playerSpawnPoint: {fileID: 11657243}
   arenaBuilder: {fileID: 324277862}
   exitConfirmCanvas: {fileID: 1311670984}
-  goldAmount: 100
+  goldAmount: 0
   enemies: []
   mines: []
 --- !u!4 &1390232724
@@ -10142,6 +10205,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: MagicSword_Ice
       objectReference: {fileID: 0}
+    - target: {fileID: 115754952869343221, guid: b35f1ef87cc024d4e912781dee7a8183, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6036987898681428080, guid: b35f1ef87cc024d4e912781dee7a8183, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.23
@@ -10250,6 +10317,10 @@ PrefabInstance:
     - target: {fileID: 2791982557752863297, guid: fceea4f5c464e498e862a34aa331b9a5, type: 3}
       propertyPath: m_Name
       value: Pistol 92 Black
+      objectReference: {fileID: 0}
+    - target: {fileID: 2791982557752863297, guid: fceea4f5c464e498e862a34aa331b9a5, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
