@@ -1,14 +1,14 @@
+using _Game.Scripts.Weapon;
+using DefaultNamespace.weapon;
 using UnityEngine;
 
 namespace DefaultNamespace
 {
-    public class RangedWeaponScript : MonoBehaviour
+    public class PistolScript : RangedWeaponBase
     {
         [SerializeField] private BulletScript bullet;
-        [SerializeField] private float damage;
-        [SerializeField] private float range;
 
-        public void Fire(Transform target)
+        public override void Fire(Transform target)
         {
             if (!gameObject.activeSelf)
             {
@@ -28,7 +28,7 @@ namespace DefaultNamespace
             var direction = (target.position - transform.position).normalized;
             bullet.transform.rotation = Quaternion.LookRotation(direction);
             bullet.target = target;
-            
+
             bulletInstance.GetComponent<Rigidbody>().AddForce(direction * damage, ForceMode.Impulse);
             bulletInstance.OnHitDelegate += param =>
             {

@@ -8,6 +8,7 @@ namespace DefaultNamespace.weapon
         [SerializeField] private float spreadAngle = 10f;
         [SerializeField] private float force = 8f;
         [SerializeField] private ShotgunPelletScript pelletPrefab;
+        protected float nextAttackTime = 1f;
 
         public override void Fire(Transform target)
         {

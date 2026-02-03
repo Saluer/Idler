@@ -18,7 +18,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Canvas endScreen;
     [SerializeField] private Canvas timerUi;
     [SerializeField] private GameObject playerSpawnPoint;
-    [SerializeField] private ArenaBuilder arenaBuilder;
     [SerializeField] private Canvas exitConfirmCanvas;
 
     public int goldAmount;
@@ -85,7 +84,6 @@ public class GameManager : MonoBehaviour
         textMeshProUGUI.text = "GO!!!";
         textMeshProUGUI.color = Color.chartreuse;
 
-        arenaBuilder.Build();
         var characterController = _player.GetComponent<CharacterController>();
         characterController.enabled = false;
         _player.transform.position = playerSpawnPoint.transform.position;

@@ -1,16 +1,16 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using _Game.Scripts.Weapon;
 using DefaultNamespace;
 using DefaultNamespace.weapon;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
 {
-    //todo app optioon for dual pistols
-    // private static readonly int Grounded = Animator.StringToHash("grounded");
-    private static readonly int Exit = Animator.StringToHash("Exit");
     public Action OnDeath;
 
     [SerializeField] private int maxHealth;
@@ -19,168 +19,96 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private float jumpHeight = 1.5f;
     [SerializeField] private float gravity = -9.81f;
 
-    [Header("Weapon")] [SerializeField] [Range(min: 1, max: 20)]
-    private float swingSpeed = 5f;
-
-    [SerializeField] [Range(min: 10, max: 90)]
-    private float swingRange = 5f;
-
-    [SerializeField] [Range(min: 1, max: 20)]
-    private float attackSpeed = 1f;
-
-    [Header("Camera")] [SerializeField] [Range(min: 1, max: 100)]
-    private float mouseSensitivity;
-
-    [SerializeField] [Range(min: 1, max: 50)]
-    private float xMaxRotationAngle;
-
-    private Vector3 _knockbackVelocity;
-    [SerializeField] private float knockbackDamping = 8f;
-
+    [Header("Camera")] [SerializeField] private float mouseSensitivity;
+    [SerializeField] private float xMaxRotationAngle;
     [SerializeField] private Transform cameraPivot;
 
-    [SerializeField] private HealthBar healthBar;
-    private CharacterController _controller;
-    private Animator _animator;
-    private SwordScript _meleeWeapon;
-    private RangedWeaponBase _rangedWeapon;
+    [Header("Weapons")] [SerializeField] private SwordScript meleeWeapon;
+    [SerializeField] private List<MonoBehaviour> ownedWeaponBehaviours;
 
-    private int _health;
+    private readonly List<IWeapon> _ownedWeapons = new();
+
+    private CharacterController _controller;
     private Vector3 _velocity;
+    private int _health;
 
     private Vector2 _moveInput;
-    private bool _jumpPressed;
     private Vector2 _lookInput;
+    private bool _jumpPressed;
     private float _xRotation;
+    private Vector3 _knockbackVelocity;
+
+    [SerializeField] private float knockbackDamping = 8f;
+
+    [SerializeField] private HealthBar healthBar;
+
+    [Header("Weapon Prefabs")] [SerializeField]
+    private GameObject swordPrefab;
+
+    [SerializeField] private GameObject pistolPrefab;
+    [SerializeField] private GameObject shotgunPrefab;
+    [SerializeField] private GameObject rocketLauncherPrefab;
+
+
+    public enum WeaponType
+    {
+        Sword = 0,
+        Pistol = 1,
+        Shotgun = 2,
+        RocketLauncher = 3
+    }
 
     private void Awake()
     {
         _controller = GetComponent<CharacterController>();
-        _animator = GetComponentInChildren<Animator>();
-        _meleeWeapon = GetComponentInChildren<SwordScript>();
-        _rangedWeapon = GetComponentInChildren<RangedWeaponBase>();
-
         _health = maxHealth;
+
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
-    }
 
-    private void Start()
-    {
-        healthBar.Init(maxHealth);
-        if (_meleeWeapon && _meleeWeapon.hitbox)
-            _meleeWeapon.hitbox.OnHitDelegate += param => { param.HandleHealthChange(-1); };
-        
-        _meleeWeapon.gameObject.SetActive(false);
-        _rangedWeapon.gameObject.SetActive(false);
-        HandleWeapon();
+        // Собираем IWeapon из инспектора
+        foreach (var mb in ownedWeaponBehaviours)
+        {
+            if (mb is IWeapon weapon)
+            {
+                _ownedWeapons.Add(weapon);
+                weapon.Disable();
+            }
+        }
     }
 
     private void Update()
     {
         if (GameManager.instance.gameMode != GameManager.GameMode.Active)
-        {
             return;
-        }
 
         HandleCameraMove();
         HandleHealth();
+        HandleWeapons();
     }
 
     private void FixedUpdate()
     {
-        if (GameManager.instance.gameMode != GameManager.GameMode.Active)
-        {
-            return;
-        }
-
         HandleMove();
     }
 
-    private void HandleWeapon()
+    private void HandleWeapons()
     {
-        StartCoroutine(HandleMeleeWeapon());
-        StartCoroutine(HandleRangeWeapon());
-    }
-
-    public void EquipMelee()
-    {
-        if (_meleeWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 5)
-        {
+        var enemy = GameManager.instance.GetClosestEnemyTo(transform);
+        if (!enemy)
             return;
-        }
 
-        _meleeWeapon.gameObject.SetActive(true);
-        _meleeWeapon.ToggleVisibility(false);
-        StartCoroutine(HandleMeleeWeapon());
+        var target = enemy.transform;
 
-        GameManager.instance.IncrementGold(-5);
-    }
-
-    public void EquipRanged()
-    {
-        if (_rangedWeapon.gameObject.activeSelf || GameManager.instance.goldAmount < 10)
+        foreach (var weapon in _ownedWeapons)
         {
-            return;
-        }
-
-        _rangedWeapon.gameObject.SetActive(true);
-        GameManager.instance.IncrementGold(-10);
-        StartCoroutine(HandleRangeWeapon());
-    }
-
-    private IEnumerator HandleMeleeWeapon()
-    {
-        while (true)
-        {
-            if (!_meleeWeapon || _meleeWeapon.gameObject.activeSelf ||
-                GameManager.instance.gameMode != GameManager.GameMode.Active)
-            {
-                yield return new WaitForEndOfFrame();
-                continue;
-            }
-
-            _meleeWeapon.ToggleVisibility(true);
-            for (var angle = 90.0f; angle > -270.0f; angle -= 15f)
-            {
-                _meleeWeapon.transform.localRotation = Quaternion.Euler(0, angle, 0);
-                yield return new WaitForFixedUpdate();
-            }
-
-            _meleeWeapon.ToggleVisibility(false);
-            yield return new WaitForSeconds(3f);
-            yield return null;
-        }
-    }
-
-    private IEnumerator HandleRangeWeapon()
-    {
-        while (true)
-        {
-            if (!_meleeWeapon || _meleeWeapon.gameObject.activeSelf ||
-                GameManager.instance.gameMode != GameManager.GameMode.Active)
-            {
-                yield return new WaitForEndOfFrame();
-                continue;
-            }
-
-            var closestEnemy = GameManager.instance.GetClosestEnemyTo(transform);
-            var reloadTime = 1 / attackSpeed;
-            if (!(closestEnemy && closestEnemy.TryGetComponent<Renderer>(out _)))
-            {
-                yield return new WaitForSeconds(reloadTime);
-                continue;
-            }
-
-            _rangedWeapon.Fire(closestEnemy.transform);
-            yield return new WaitForSeconds(reloadTime);
+            weapon.TryAttack(target);
         }
     }
 
     private void HandleCameraMove()
     {
         var look = _lookInput * (mouseSensitivity * Time.deltaTime);
-
         transform.Rotate(Vector3.up * look.x);
 
         var prevPitch = _xRotation;
@@ -190,18 +118,12 @@ public class PlayerScript : MonoBehaviour
         if (Mathf.Abs(deltaPitch) < 0.0001f)
             return;
 
-        cameraPivot.RotateAround(
-            transform.position,
-            transform.right,
-            deltaPitch
-        );
+        cameraPivot.RotateAround(transform.position, transform.right, deltaPitch);
     }
 
     private void HandleMove()
     {
-        var move =
-            transform.right * _moveInput.x +
-            transform.forward * _moveInput.y;
+        var move = transform.right * _moveInput.x + transform.forward * _moveInput.y;
 
         if (_controller.isGrounded)
         {
@@ -216,31 +138,73 @@ public class PlayerScript : MonoBehaviour
         }
 
         _velocity.y += gravity * Time.deltaTime;
-
-        var displacement = ((move + _knockbackVelocity) * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime;
-        _controller.Move(displacement);
-
-        _knockbackVelocity = Vector3.Lerp(
-            _knockbackVelocity,
-            Vector3.zero,
-            knockbackDamping * Time.deltaTime
-        );
+        _controller.Move((move * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime);
     }
 
     private void HandleHealth()
     {
         if (_health > 0) return;
 
-        if (BuffHub.ExtraLife > 0)
+        gameObject.SetActive(false);
+        OnDeath?.Invoke();
+    }
+
+    public void BuyWeapon(int weaponType)
+    {
+        var type = (WeaponType)weaponType;
+
+        if (!CanBuy(type))
+            return;
+
+        var weaponGO = Instantiate(GetPrefab(type), transform);
+        if (!weaponGO.TryGetComponent<IWeapon>(out var weapon))
         {
-            _health = maxHealth;
-            BuffHub.ExtraLife--;
+            Destroy(weaponGO);
+            Debug.LogError("Prefab has no IWeapon");
             return;
         }
 
-        gameObject.SetActive(false);
-        OnDeath();
+        weapon.Enable();
+        _ownedWeapons.Add(weapon);
+
+        SpendGold(type);
     }
+
+    private GameObject GetPrefab(WeaponType type)
+    {
+        return type switch
+        {
+            WeaponType.Sword => swordPrefab,
+            WeaponType.Pistol => pistolPrefab,
+            WeaponType.Shotgun => shotgunPrefab,
+            WeaponType.RocketLauncher => rocketLauncherPrefab,
+            _ => null
+        };
+    }
+
+    private bool CanBuy(WeaponType type)
+    {
+        var cost = GetCost(type);
+        return GameManager.instance.goldAmount >= cost;
+    }
+
+    private void SpendGold(WeaponType type)
+    {
+        GameManager.instance.IncrementGold(-GetCost(type));
+    }
+
+    private int GetCost(WeaponType type)
+    {
+        return type switch
+        {
+            WeaponType.Sword => 5,
+            WeaponType.Pistol => 10,
+            WeaponType.Shotgun => 20,
+            WeaponType.RocketLauncher => 40,
+            _ => int.MaxValue
+        };
+    }
+
 
     public void IncreaseHealth(int delta)
     {
@@ -281,31 +245,17 @@ public class PlayerScript : MonoBehaviour
 
     public void ApplyAttackSpeedBuff(float bonus, float duration)
     {
-        StartCoroutine(SpeedAttackBuffCoroutine(bonus, duration));
+        // StartCoroutine(SpeedAttackBuffCoroutine(bonus, duration));
     }
 
-    private IEnumerator SpeedAttackBuffCoroutine(float bonus, float duration)
-    {
-        attackSpeed += bonus;
-        yield return new WaitForSeconds(duration);
-        attackSpeed -= bonus;
-    }
 
-    // === Send Messages callbacks ===
-
-    public void OnMove(InputValue value)
-    {
-        _moveInput = value.Get<Vector2>();
-    }
+    // Input
+    public void OnMove(InputValue value) => _moveInput = value.Get<Vector2>();
 
     public void OnJump()
     {
-        if (_controller.isGrounded)
-            _jumpPressed = true;
+        if (_controller.isGrounded) _jumpPressed = true;
     }
 
-    public void OnLook(InputValue value)
-    {
-        _lookInput = value.Get<Vector2>();
-    }
+    public void OnLook(InputValue value) => _lookInput = value.Get<Vector2>();
 }
