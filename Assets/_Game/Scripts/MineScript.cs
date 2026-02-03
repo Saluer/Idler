@@ -7,7 +7,7 @@ public class MineScript : MonoBehaviour
 {
     private static readonly int IsWorking = Animator.StringToHash("IsWorking");
     private Animator _animator;
-    public static int GoldIncrement;
+    public static int GoldIncrement = 1;
 
     private void Start()
     {

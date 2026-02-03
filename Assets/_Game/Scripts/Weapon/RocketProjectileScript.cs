@@ -17,7 +17,6 @@ namespace DefaultNamespace.weapon
                 enemyLayer
             );
             
-            Debug.Log(hits);
             foreach (var hit in hits)
             {
                 if (hit.TryGetComponent<EnemyScript>(out var enemy))

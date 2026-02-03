@@ -23,8 +23,8 @@ namespace DefaultNamespace
             _renderer = GetComponent<Renderer>();
             _trailRenderer = GetComponentInChildren<TrailRenderer>();
             hitbox = GetComponentInChildren<SwordHitbox>();
-
-            Disable();
+            hitbox.OnHitDelegate += enemy => { enemy.HandleHealthChange(-1); };
+            // Disable();
         }
 
         // ======================
@@ -34,6 +34,7 @@ namespace DefaultNamespace
         public void Enable()
         {
             gameObject.SetActive(true);
+            hitbox.gameObject.SetActive(true);
             ToggleVisibility(false);
         }
 
