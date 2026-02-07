@@ -10,10 +10,13 @@ namespace DefaultNamespace
         [SerializeField] private BuffConfig buff;
         [SerializeField] private string displayText;
         private Canvas _displayTextCanvas;
+        private Renderer _renderer;
+        private bool _isTriggered;
 
         private void Awake()
         {
             var col = GetComponent<Collider>();
+            _renderer = GetComponent<Renderer>();
             col.isTrigger = true;
         }
 
@@ -25,10 +28,11 @@ namespace DefaultNamespace
         private void OnTriggerEnter(Collider other)
         {
             var player = other.GetComponent<PlayerScript>();
-            if (!player)
+            if (!player || _isTriggered)
                 return;
 
             ApplyBuff(player);
+            _isTriggered = true;
         }
 
         private void ApplyBuff(PlayerScript player)
@@ -39,6 +43,7 @@ namespace DefaultNamespace
             buff.Apply(player);
             var tmp = _displayTextCanvas.GetComponentInChildren<TextMeshProUGUI>();
             tmp.text = displayText;
+            _renderer.enabled = false;
             StartCoroutine(DisposeText());
             return;
 
