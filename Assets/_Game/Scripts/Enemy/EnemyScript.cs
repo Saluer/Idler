@@ -110,7 +110,7 @@ namespace DefaultNamespace
             _health = Mathf.Clamp(_health + delta, 0, maxHealth);
         }
 
-        private void HandleHealth()
+        protected virtual void HandleHealth()
         {
             if (_health > 0) return;
 
@@ -122,6 +122,12 @@ namespace DefaultNamespace
             Destroy(gameObject);
             OnEnemyKilled?.Invoke(goldAmount);
         }
+        
+        protected int GetCurrentHealth()
+        {
+            return _health;
+        }
+
 
         private void TrySpawnChest()
         {

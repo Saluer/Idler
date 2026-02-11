@@ -49,7 +49,6 @@ public class PlayerScript : MonoBehaviour
     [SerializeField] private GameObject shotgunPrefab;
     [SerializeField] private GameObject rocketLauncherPrefab;
 
-
     public enum WeaponType
     {
         Sword = 0,
@@ -77,19 +76,21 @@ public class PlayerScript : MonoBehaviour
         }
     }
 
+    private void Start()
+    {
+        healthBar.gameObject.SetActive(true);
+        healthBar.Init(maxHealth);
+    }
+
     private void Update()
     {
         if (GameManager.instance.gameMode != GameManager.GameMode.Active)
             return;
 
-        HandleCameraMove();
         HandleHealth();
-        HandleWeapons();
-    }
-
-    private void FixedUpdate()
-    {
         HandleMove();
+        HandleCameraMove();
+        HandleWeapons();
     }
 
     private void HandleWeapons()
@@ -125,20 +126,21 @@ public class PlayerScript : MonoBehaviour
     {
         var move = transform.right * _moveInput.x + transform.forward * _moveInput.y;
 
-        if (_controller.isGrounded)
+        if (_controller.isGrounded && _velocity.y < 0f)
         {
-            if (_velocity.y < 0)
-                _velocity.y = -2f;
+            _velocity.y = -2f;
+        }
 
-            if (_jumpPressed)
-            {
-                _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                _jumpPressed = false;
-            }
+        if (_jumpPressed && _controller.isGrounded)
+        {
+            _velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            _jumpPressed = false;
         }
 
         _velocity.y += gravity * Time.deltaTime;
-        _controller.Move((move * moveSpeed + Vector3.up * _velocity.y) * Time.deltaTime);
+
+        var motion = move * moveSpeed + Vector3.up * _velocity.y;
+        _controller.Move(motion * Time.deltaTime);
     }
 
     private void HandleHealth()
@@ -156,10 +158,10 @@ public class PlayerScript : MonoBehaviour
         if (!CanBuy(type))
             return;
 
-        var weaponGO = Instantiate(GetPrefab(type), transform);
-        if (!weaponGO.TryGetComponent<IWeapon>(out var weapon))
+        var weaponGo = Instantiate(GetPrefab(type), transform);
+        if (!weaponGo.TryGetComponent<IWeapon>(out var weapon))
         {
-            Destroy(weaponGO);
+            Destroy(weaponGo);
             Debug.LogError("Prefab has no IWeapon");
             return;
         }
@@ -204,8 +206,7 @@ public class PlayerScript : MonoBehaviour
             _ => int.MaxValue
         };
     }
-
-
+    
     public void IncreaseHealth(int delta)
     {
         _health = Mathf.Clamp(_health + delta, 0, maxHealth);

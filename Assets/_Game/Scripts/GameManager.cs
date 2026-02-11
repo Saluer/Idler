@@ -1,291 +1,308 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using DefaultNamespace;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Random = UnityEngine.Random;
 
-public class GameManager : MonoBehaviour
+namespace DefaultNamespace
 {
-    public static event System.Action OnForceCloseShop;
-
-    [SerializeField] private int timeBetweenRounds = 60;
-    [SerializeField] private TextMeshProUGUI scoreText;
-    [SerializeField] private List<EnemyLevelConfig> enemyLevels;
-    [SerializeField] private Transform spawnPosition;
-    [SerializeField] private Canvas endScreen;
-    [SerializeField] private Canvas timerUi;
-    [SerializeField] private GameObject playerSpawnPoint;
-    [SerializeField] private Canvas exitConfirmCanvas;
-
-    public int goldAmount;
-    [HideInInspector] public List<GameObject> enemies = new();
-    public GameMode gameMode { set; get; }
-
-    private PlayerScript _player;
-    [HideInInspector] public List<MineScript> mines;
-    public static GameManager instance { get; private set; }
-    private int _mineCost = 1;
-    private int _mineUpgradeCost = 4;
-
-    private bool _isExitMenuOpen;
-
-    public enum GameMode
+    public class GameManager : MonoBehaviour
     {
-        Active,
-        Shop,
-        End,
-        MainMenu
-    }
+        public static event System.Action OnForceCloseShop;
 
-    private void Awake()
-    {
-        instance = this;
-    }
+        [SerializeField] private int timeBetweenRounds = 60;
+        [SerializeField] private TextMeshProUGUI scoreText;
+        [SerializeField] private List<EnemyLevelConfig> enemyLevels;
+        [SerializeField] private Transform spawnPosition;
+        [SerializeField] private Canvas endScreen;
+        [SerializeField] private Canvas timerUi;
+        [SerializeField] private GameObject playerSpawnPoint;
+        [SerializeField] private Canvas exitConfirmCanvas;
 
-    private void Start()
-    {
-        _player = FindFirstObjectByType<PlayerScript>();
-        StartCoroutine(HandleLevels());
+        public int goldAmount;
+        [HideInInspector] public List<GameObject> enemies = new();
+        public GameMode gameMode { set; get; }
 
-        _player.OnDeath += () =>
+        private PlayerScript _player;
+        [HideInInspector] public List<MineScript> mines;
+
+        public static GameManager instance { get; private set; }
+
+        private int _mineCost = 1;
+        private int _mineUpgradeCost = 4;
+        private bool _isExitMenuOpen;
+
+        private Coroutine _betweenRoundsTimer;
+
+        public enum GameMode
         {
-            gameMode = GameMode.End;
-            endScreen.gameObject.SetActive(true);
-            StartCoroutine(Restart());
-            return;
+            Active,
+            Shop,
+            End,
+            MainMenu
+        }
 
-            IEnumerator Restart()
+        private void Awake()
+        {
+            instance = this;
+        }
+
+        private void Start()
+        {
+            _player = FindFirstObjectByType<PlayerScript>();
+            StartCoroutine(HandleLevels());
+
+            _player.OnDeath += () =>
             {
-                yield return new WaitForSeconds(2f);
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                gameMode = GameMode.End;
+                endScreen.gameObject.SetActive(true);
+                StartCoroutine(Restart());
+                return;
+
+                IEnumerator Restart()
+                {
+                    yield return new WaitForSeconds(2f);
+                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                }
+            };
+        }
+
+        // ---------------- LEVEL FLOW ----------------
+
+        private IEnumerator HandleLevels()
+        {
+            foreach (var levelConfig in enemyLevels)
+            {
+                yield return StartCoroutine(RunLevel(levelConfig));
             }
-        };
-    }
 
-    private IEnumerator HandleLevels()
-    {
-        yield return enemyLevels.Select(levelConfig => StartCoroutine(RunLevel(levelConfig))).GetEnumerator();
-        ToggleExitMenu();
-    }
-
-    private IEnumerator RunTimer(SpawnerScript spawner, EnemyLevelConfig config)
-    {
-        var textMeshProUGUI = timerUi.GetComponentInChildren<TextMeshProUGUI>();
-        textMeshProUGUI.color = Color.antiqueWhite;
-        for (var i = timeBetweenRounds; i > 0 && !spawner.triggerActivated; i--)
-        {
-            textMeshProUGUI.text = i.ToString();
-            yield return new WaitForSeconds(1f);
+            ToggleExitMenu();
         }
 
-        textMeshProUGUI.text = "GO!!!";
-        textMeshProUGUI.color = Color.chartreuse;
-
-        var characterController = _player.GetComponent<CharacterController>();
-        characterController.enabled = false;
-        _player.transform.position = playerSpawnPoint.transform.position;
-        characterController.enabled = true;
-        yield return spawner.SpawnAll(config);
-    }
-
-    private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
-    {
-        var spawner = Instantiate(levelConfig.enemyPreviewPrefab);
-        var spawnerScript = spawner.AddComponent<SpawnerScript>();
-        spawnerScript.config = levelConfig;
-        spawnerScript.spawnPosition = spawnPosition.position;
-        var enemyScript = spawner.gameObject.GetComponentInChildren<EnemyScript>();
-        Destroy(enemyScript);
-        spawner.gameObject.SetActive(true);
-
-        StartCoroutine(RunTimer(spawnerScript, levelConfig));
-
-
-        while (!spawnerScript.triggerActivated)
+        private IEnumerator RunLevel(EnemyLevelConfig levelConfig)
         {
-            yield return null;
+            enemies.Clear();
+
+            var spawnerGo = Instantiate(levelConfig.enemyPreviewPrefab);
+            var spawner = spawnerGo.AddComponent<SpawnerScript>();
+
+            spawner.Init(
+                config: levelConfig,
+                spawnPosition: spawnPosition.position,
+                spawnRadius: 30f,
+                baseSpawnDelay: 0.5f,
+                minSpawnDelay: 0.1f,
+                killAccelerationMultiplier: 0.85f
+            );
+
+            var previewEnemy = spawnerGo.GetComponentInChildren<EnemyScript>();
+            if (previewEnemy != null)
+                Destroy(previewEnemy);
+
+            spawnerGo.SetActive(true);
+
+            // запускаем таймер МЕЖДУ волнами
+            _betweenRoundsTimer = StartCoroutine(BetweenRoundsTimer(spawner));
+
+            // ждём либо ручного старта, либо окончания таймера
+            while (!spawner.CanStart && !spawner.triggerActivated)
+                yield return null;
+
+            // если волна стартовала вручную — убиваем таймер
+            if (_betweenRoundsTimer != null)
+            {
+                StopCoroutine(_betweenRoundsTimer);
+                _betweenRoundsTimer = null;
+            }
+
+            // если старт разрешён таймером — стартуем волну
+            if (!spawner.triggerActivated)
+                spawner.Begin();
+
+            OnWaveStarted();
+
+            // ждём реального старта
+            while (!spawner.triggerActivated)
+                yield return null;
+
+            // ждём, пока заспавнится весь пул
+            while (spawner.SpawnedEnemies < spawner.TotalEnemies)
+                yield return null;
+
+            // ждём, пока всех убьют
+            while (enemies.Count > 0)
+            {
+                yield return null;
+            }
+
+            spawnerGo.SetActive(false);
         }
 
-        while (enemies.Count > 0)
+        private IEnumerator BetweenRoundsTimer(SpawnerScript spawner)
         {
-            yield return null;
+            var text = timerUi.GetComponentInChildren<TextMeshProUGUI>();
+            text.color = Color.antiqueWhite;
+
+            for (var i = timeBetweenRounds; i > 0; i--)
+            {
+                text.text = i.ToString();
+                yield return new WaitForSeconds(1f);
+            }
+
+            spawner.AllowStart();
         }
 
-        spawner.gameObject.SetActive(false);
-        yield return null;
-    }
-
-    public void AddMine()
-    {
-        if (goldAmount < _mineCost)
+        private void OnWaveStarted()
         {
-            return;
+            var text = timerUi.GetComponentInChildren<TextMeshProUGUI>();
+            text.text = "GO!!!";
+            text.color = Color.chartreuse;
+
+            var cc = _player.GetComponent<CharacterController>();
+            cc.enabled = false;
+            _player.transform.position = playerSpawnPoint.transform.position;
+            cc.enabled = true;
         }
 
-        var pos = mines.Count == 0 ? Vector3.zero : mines[^1].transform.position;
-        switch (Random.Range(1, 2))
+
+        // ---------------- ESC / PAUSE ----------------
+
+        private void Update()
         {
-            case 1:
-                pos.x += 5f;
-                break;
-            case 2:
-                pos.z += 5f;
-                break;
+            if (gameMode == GameMode.End)
+                return;
+
+            if (!Input.GetKeyDown(KeyCode.Escape))
+                return;
+
+            if (_isExitMenuOpen)
+            {
+                CloseExitMenu();
+                return;
+            }
+
+            if (gameMode == GameMode.Shop)
+            {
+                OnForceCloseShop?.Invoke();
+            }
+            else
+            {
+                OpenExitMenu();
+            }
         }
 
-        var mine = Instantiate(Resources.Load<GameObject>("Prefabs/Mine"), pos, Quaternion.identity);
-        IncrementGold(-_mineCost);
-        _mineCost = _mineCost * 3 + 1;
-    }
-
-    public void UpgradeMines()
-    {
-        if (goldAmount < _mineUpgradeCost)
+        private void OpenExitMenu()
         {
-            return;
+            _isExitMenuOpen = true;
+            gameMode = GameMode.MainMenu;
+
+            exitConfirmCanvas.gameObject.SetActive(true);
+            Time.timeScale = 0f;
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
-        IncrementGold(-_mineUpgradeCost);
-        _mineUpgradeCost *= 4;
+        private void CloseExitMenu()
+        {
+            _isExitMenuOpen = false;
+            gameMode = GameMode.Active;
 
-        MineScript.GoldIncrement++;
-    }
+            exitConfirmCanvas.gameObject.SetActive(false);
+            Time.timeScale = 1f;
 
-    public void IncrementGold(int amount)
-    {
-        goldAmount += amount;
-        scoreText.text = goldAmount.ToString();
-    }
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
 
-    private void Update()
-    {
-        if (gameMode == GameMode.End)
-            return;
+        private void ToggleExitMenu()
+        {
+            if (_isExitMenuOpen)
+                CloseExitMenu();
+            else
+                OpenExitMenu();
+        }
 
-        if (!Input.GetKeyDown(KeyCode.Escape))
-            return;
+        // ---------------- ECONOMY ----------------
+
+        public void IncrementGold(int amount)
+        {
+            goldAmount += amount;
+            scoreText.text = goldAmount.ToString();
+        }
+
+        private void OnEnable()
+        {
+            EnemyScript.OnEnemyKilled += OnEnemyKilled;
+        }
+
+        private void OnDisable()
+        {
+            EnemyScript.OnEnemyKilled -= OnEnemyKilled;
+        }
+
+        private void OnEnemyKilled(int goldAmount)
+        {
+            IncrementGold(goldAmount);
+        }
+
+        public GameObject GetClosestEnemyTo(Transform target)
+        {
+            return enemies
+                .Where(e => e)
+                .OrderBy(e => Vector3.Distance(target.position, e.transform.position))
+                .FirstOrDefault();
+        }
         
-        if (_isExitMenuOpen)
+        // ---------------- MINES ----------------
+
+        public void AddMine()
         {
-            CloseExitMenu();
-            return;
+            if (goldAmount < _mineCost)
+                return;
+
+            if (mines == null)
+                mines = new List<MineScript>();
+
+            var pos = mines.Count == 0
+                ? Vector3.zero
+                : mines[^1].transform.position;
+
+            switch (Random.Range(1, 3))
+            {
+                case 1:
+                    pos.x += 5f;
+                    break;
+                case 2:
+                    pos.z += 5f;
+                    break;
+            }
+
+            var mineGo = Instantiate(
+                Resources.Load<GameObject>("Prefabs/Mine"),
+                pos,
+                Quaternion.identity
+            );
+
+            var mine = mineGo.GetComponent<MineScript>();
+            mines.Add(mine);
+
+            IncrementGold(-_mineCost);
+            _mineCost = _mineCost * 3 + 1;
         }
 
-        if (gameMode == GameMode.Shop)
+        public void UpgradeMines()
         {
-            OnForceCloseShop?.Invoke();
+            if (goldAmount < _mineUpgradeCost)
+                return;
+
+            IncrementGold(-_mineUpgradeCost);
+            _mineUpgradeCost *= 4;
+
+            MineScript.GoldIncrement++;
         }
-        else
-        {
-            OpenExitMenu();
-        }
-    }
 
-
-    private void ToggleExitMenu()
-    {
-        gameMode = gameMode == GameMode.Active ? GameMode.MainMenu : GameMode.Active;
-        _isExitMenuOpen = !_isExitMenuOpen;
-
-        exitConfirmCanvas.gameObject.SetActive(_isExitMenuOpen);
-
-        Time.timeScale = _isExitMenuOpen ? 0f : 1f;
-
-        Cursor.lockState = _isExitMenuOpen
-            ? CursorLockMode.None
-            : CursorLockMode.Locked;
-
-        Cursor.visible = _isExitMenuOpen;
-    }
-
-    public void ConfirmExit()
-    {
-        Time.timeScale = 1f;
-        Application.Quit();
-    }
-
-    public void CancelExit()
-    {
-        Time.timeScale = 1f;
-        ToggleExitMenu();
-    }
-
-    public void OpenShop(Canvas shopCanvas)
-    {
-        CloseAllMenus();
-
-        gameMode = GameMode.Shop;
-        shopCanvas.gameObject.SetActive(true);
-
-        Time.timeScale = 0f;
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
-    public void CloseShop(Canvas shopCanvas)
-    {
-        shopCanvas.gameObject.SetActive(false);
-
-        gameMode = GameMode.Active;
-        Time.timeScale = 1f;
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-
-    private void OpenExitMenu()
-    {
-        _isExitMenuOpen = true;
-        gameMode = GameMode.MainMenu;
-
-        exitConfirmCanvas.gameObject.SetActive(true);
-        Time.timeScale = 0f;
-
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
-    }
-
-    private void CloseExitMenu()
-    {
-        _isExitMenuOpen = false;
-        gameMode = GameMode.Active;
-
-        exitConfirmCanvas.gameObject.SetActive(false);
-        Time.timeScale = 1f;
-
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
-    }
-
-
-    private void CloseAllMenus()
-    {
-        exitConfirmCanvas.gameObject.SetActive(false);
-    }
-
-    public GameObject GetClosestEnemyTo(Transform target)
-    {
-        return enemies
-            .Where(enemy => enemy)
-            .OrderBy(enemy => Vector3.Distance(target.position, enemy.transform.position))
-            .FirstOrDefault();
-    }
-
-    private void OnEnable()
-    {
-        EnemyScript.OnEnemyKilled += EnemyScriptOnOnEnemyKilled;
-    }
-
-    private void OnDisable()
-    {
-        EnemyScript.OnEnemyKilled -= EnemyScriptOnOnEnemyKilled;
-    }
-
-    private void EnemyScriptOnOnEnemyKilled(int goldAMount)
-    {
-        goldAmount += goldAMount;
-        scoreText.text = goldAmount.ToString();
     }
 }

@@ -1,3 +1,4 @@
+using DefaultNamespace;
 using UnityEngine;
 
 public class ShopScript : MonoBehaviour

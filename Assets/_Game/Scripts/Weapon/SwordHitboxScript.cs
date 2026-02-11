@@ -33,7 +33,6 @@ namespace DefaultNamespace
         {
             if (_hitThisSwing.Contains(other)) return;
             if (!other.TryGetComponent<EnemyScript>(out var enemy)) return;
-            Debug.Log(other.name + " has hit something");
             _hitThisSwing.Add(other);
 
             if (enemy != null)
