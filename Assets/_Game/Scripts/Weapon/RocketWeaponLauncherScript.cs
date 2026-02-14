@@ -15,6 +15,8 @@ namespace DefaultNamespace.weapon
             var rocketInstance =
                 Instantiate(rocket, transform.position, Quaternion.identity);
 
+            rocketInstance.SetDamage(EffectiveDamage);
+
             if (!rocketInstance.TryGetComponent<Rigidbody>(out var rb))
             {
                 Destroy(rocketInstance.gameObject);

@@ -32,8 +32,9 @@ namespace DefaultNamespace
             bulletInstance.GetComponent<Rigidbody>().AddForce(direction * damage, ForceMode.Impulse);
             bulletInstance.OnHitDelegate += param =>
             {
-                var damageToEnemy = -(int)damage + -BuffHub.MoneyIsStrength * GameManager.instance.goldAmount / 100;
-                param.HandleHealthChange(damageToEnemy);
+                var baseDmg = EffectiveDamage + BuffHub.MoneyIsStrength * GameManager.instance.goldAmount / 100;
+                var finalDmg = BuffHub.ApplyGiantSlayer(baseDmg, param.transform);
+                param.HandleHealthChange(-finalDmg);
             };
 
             Destroy(bulletInstance, 3f);

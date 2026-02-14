@@ -9,6 +9,14 @@ namespace DefaultNamespace.weapon
         [SerializeField] private int damage = 5;
         [SerializeField] private LayerMask enemyLayer;
 
+        private bool _damageOverridden;
+
+        public void SetDamage(int overrideDamage)
+        {
+            damage = overrideDamage;
+            _damageOverridden = true;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             var hits = Physics.OverlapSphere(
@@ -16,12 +24,13 @@ namespace DefaultNamespace.weapon
                 explosionRadius,
                 enemyLayer
             );
-            
+
             foreach (var hit in hits)
             {
                 if (hit.TryGetComponent<EnemyScript>(out var enemy))
                 {
-                    enemy.IncreaseHealth(-damage);
+                    var dmg = BuffHub.ApplyGiantSlayer(damage, enemy.transform);
+                    enemy.IncreaseHealth(-dmg);
                 }
             }
 

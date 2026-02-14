@@ -1,3 +1,4 @@
+using _Game.Scripts.Weapon;
 using UnityEngine;
 
 namespace DefaultNamespace.weapon
@@ -9,12 +10,16 @@ namespace DefaultNamespace.weapon
         [SerializeField] private float force = 8f;
         [SerializeField] private ShotgunPelletScript pelletPrefab;
 
+        private int _bonusPellets;
+
         public override void Fire(Transform target)
         {
             if (!gameObject.activeSelf)
                 return;
 
-            for (var i = 0; i < pellets; i++)
+            var totalPellets = pellets + _bonusPellets;
+
+            for (var i = 0; i < totalPellets; i++)
             {
                 var pellet = Instantiate(
                     pelletPrefab,
@@ -41,10 +46,16 @@ namespace DefaultNamespace.weapon
 
                 pellet.OnHitDelegate += enemy =>
                 {
-                    enemy.HandleHealthChange(-(int)damage);
+                    var dmg = BuffHub.ApplyGiantSlayer(EffectiveDamage, enemy.transform);
+                    enemy.HandleHealthChange(-dmg);
                 };
             }
         }
 
+        public override void ApplyUpgrade(WeaponUpgradeTier tier)
+        {
+            base.ApplyUpgrade(tier);
+            _bonusPellets = tier.bonusPellets;
+        }
     }
 }

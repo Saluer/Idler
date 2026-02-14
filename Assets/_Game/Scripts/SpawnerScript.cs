@@ -104,13 +104,20 @@ namespace DefaultNamespace
         {
             IsSpawning = true;
 
-            TotalEnemies = _config.enemies.Sum(e => e.count);
+            // Apply wave modifier count multiplier
+            var countMultiplier = 1f;
+            var modMgr = WaveModifierManager.Instance;
+            if (modMgr != null)
+                countMultiplier = modMgr.CombinedCount;
+
+            TotalEnemies = (int)(_config.enemies.Sum(e => e.count) * countMultiplier);
             SpawnedEnemies = 0;
             _currentSpawnDelay = _baseSpawnDelay;
 
             foreach (var enemyWrapper in _config.enemies)
             {
-                for (var i = 0; i < enemyWrapper.count; i++)
+                var adjustedCount = Mathf.Max(1, (int)(enemyWrapper.count * countMultiplier));
+                for (var i = 0; i < adjustedCount; i++)
                 {
                     var angle = Random.Range(0f, 2f * Mathf.PI);
 

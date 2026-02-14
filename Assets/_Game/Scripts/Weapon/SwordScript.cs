@@ -10,6 +10,7 @@ namespace DefaultNamespace
         public SwordHitbox hitbox { get; private set; }
 
         [SerializeField] private float swingCooldown = 3f;
+        [SerializeField] private int baseDamage = 1;
 
         private Renderer _renderer;
         private TrailRenderer _trailRenderer;
@@ -18,13 +19,20 @@ namespace DefaultNamespace
         private float _nextAttackTime;
         private Coroutine _swingCoroutine;
 
+        // Upgrade support
+        private float _damageMultiplier = 1f;
+        private float _cooldownMultiplier = 1f;
+        private int _currentUpgradeTier;
+
+        private int EffectiveDamage => Mathf.RoundToInt(baseDamage * _damageMultiplier);
+        private float EffectiveCooldown => swingCooldown * _cooldownMultiplier;
+
         private void Awake()
         {
             _renderer = GetComponent<Renderer>();
             _trailRenderer = GetComponentInChildren<TrailRenderer>();
             hitbox = GetComponentInChildren<SwordHitbox>();
-            hitbox.OnHitDelegate += enemy => { enemy.HandleHealthChange(-1); };
-            // Disable();
+            hitbox.OnHitDelegate += enemy => { enemy.HandleHealthChange(-EffectiveDamage); };
         }
 
         // ======================
@@ -62,9 +70,18 @@ namespace DefaultNamespace
             if (Time.time < _nextAttackTime)
                 return;
 
-            _nextAttackTime = Time.time + swingCooldown;
+            _nextAttackTime = Time.time + EffectiveCooldown;
             _swingCoroutine = StartCoroutine(SwingCoroutine());
         }
+
+        public void ApplyUpgrade(WeaponUpgradeTier tier)
+        {
+            _damageMultiplier = tier.damageMultiplier;
+            _cooldownMultiplier = tier.cooldownMultiplier;
+            _currentUpgradeTier++;
+        }
+
+        public int CurrentUpgradeTier => _currentUpgradeTier;
 
         // ======================
         // Attack logic

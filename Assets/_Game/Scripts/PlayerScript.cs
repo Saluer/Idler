@@ -8,7 +8,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(CharacterController))]
 public class PlayerScript : MonoBehaviour
 {
     public Action OnDeath;
@@ -65,7 +64,6 @@ public class PlayerScript : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        // Собираем IWeapon из инспектора
         foreach (var mb in ownedWeaponBehaviours)
         {
             if (mb is IWeapon weapon)
@@ -73,6 +71,25 @@ public class PlayerScript : MonoBehaviour
                 _ownedWeapons.Add(weapon);
                 weapon.Disable();
             }
+        }
+    }
+
+    private void OnEnable()
+    {
+        EnemyScript.OnEnemyKilled += OnEnemyKilled;
+    }
+
+    private void OnDisable()
+    {
+        EnemyScript.OnEnemyKilled -= OnEnemyKilled;
+    }
+
+    private void OnEnemyKilled(int goldAmount)
+    {
+        // Vampire buff: heal on kill
+        if (BuffHub.Vampire > 0)
+        {
+            IncreaseHealth(BuffHub.Vampire);
         }
     }
 
@@ -169,7 +186,38 @@ public class PlayerScript : MonoBehaviour
         weapon.Enable();
         _ownedWeapons.Add(weapon);
 
-        SpendGold(type);
+        SpendDiamonds(type);
+    }
+
+    public void UpgradeWeapon(int weaponType)
+    {
+        var mgr = WeaponUpgradeManager.Instance;
+        if (mgr == null) return;
+
+        var type = (WeaponType)weaponType;
+        if (!mgr.CanUpgrade(type)) return;
+
+        // Find the matching owned weapon
+        foreach (var w in _ownedWeapons)
+        {
+            if (GetWeaponType(w) == type)
+            {
+                mgr.Upgrade(type, w);
+                break;
+            }
+        }
+    }
+
+    private WeaponType? GetWeaponType(IWeapon weapon)
+    {
+        return weapon switch
+        {
+            SwordScript => WeaponType.Sword,
+            PistolScript => WeaponType.Pistol,
+            ShotgunWeaponScript => WeaponType.Shotgun,
+            RocketLauncherWeaponScript => WeaponType.RocketLauncher,
+            _ => null
+        };
     }
 
     private GameObject GetPrefab(WeaponType type)
@@ -187,12 +235,12 @@ public class PlayerScript : MonoBehaviour
     private bool CanBuy(WeaponType type)
     {
         var cost = GetCost(type);
-        return GameManager.instance.goldAmount >= cost;
+        return GameManager.instance.diamondsAmount >= cost;
     }
 
-    private void SpendGold(WeaponType type)
+    private void SpendDiamonds(WeaponType type)
     {
-        GameManager.instance.IncrementGold(-GetCost(type));
+        GameManager.instance.IncrementDiamonds(-GetCost(type));
     }
 
     private int GetCost(WeaponType type)
@@ -206,7 +254,7 @@ public class PlayerScript : MonoBehaviour
             _ => int.MaxValue
         };
     }
-    
+
     public void IncreaseHealth(int delta)
     {
         _health = Mathf.Clamp(_health + delta, 0, maxHealth);

@@ -20,8 +20,10 @@ namespace DefaultNamespace
         [SerializeField] private Canvas timerUi;
         [SerializeField] private GameObject playerSpawnPoint;
         [SerializeField] private Canvas exitConfirmCanvas;
+        [SerializeField] private WaveModifierManager waveModifierManager;
 
         public int goldAmount;
+        public int diamondsAmount;
         [HideInInspector] public List<GameObject> enemies = new();
         public GameMode gameMode { set; get; }
 
@@ -85,6 +87,10 @@ namespace DefaultNamespace
         {
             enemies.Clear();
 
+            // Roll wave modifiers
+            if (waveModifierManager != null)
+                waveModifierManager.RollModifiers();
+
             var spawnerGo = Instantiate(levelConfig.enemyPreviewPrefab);
             var spawner = spawnerGo.AddComponent<SpawnerScript>();
 
@@ -103,47 +109,64 @@ namespace DefaultNamespace
 
             spawnerGo.SetActive(true);
 
-            // запускаем таймер МЕЖДУ волнами
             _betweenRoundsTimer = StartCoroutine(BetweenRoundsTimer(spawner));
 
-            // ждём либо ручного старта, либо окончания таймера
             while (!spawner.CanStart && !spawner.triggerActivated)
                 yield return null;
 
-            // если волна стартовала вручную — убиваем таймер
             if (_betweenRoundsTimer != null)
             {
                 StopCoroutine(_betweenRoundsTimer);
                 _betweenRoundsTimer = null;
             }
 
-            // если старт разрешён таймером — стартуем волну
             if (!spawner.triggerActivated)
                 spawner.Begin();
 
             OnWaveStarted();
 
-            // ждём реального старта
             while (!spawner.triggerActivated)
                 yield return null;
 
-            // ждём, пока заспавнится весь пул
             while (spawner.SpawnedEnemies < spawner.TotalEnemies)
                 yield return null;
 
-            // ждём, пока всех убьют
             while (enemies.Count > 0)
             {
                 yield return null;
             }
 
             spawnerGo.SetActive(false);
+
+            // Clear modifiers after wave
+            if (waveModifierManager != null)
+                waveModifierManager.ClearModifiers();
         }
 
         private IEnumerator BetweenRoundsTimer(SpawnerScript spawner)
         {
             var text = timerUi.GetComponentInChildren<TextMeshProUGUI>();
             text.color = Color.antiqueWhite;
+
+            // Show modifier announcement for first few seconds
+            if (waveModifierManager != null)
+            {
+                var announcement = waveModifierManager.GetAnnouncementText();
+                if (!string.IsNullOrEmpty(announcement))
+                {
+                    text.text = announcement;
+                    yield return new WaitForSeconds(4f);
+
+                    for (var i = timeBetweenRounds - 4; i > 0; i--)
+                    {
+                        text.text = i.ToString();
+                        yield return new WaitForSeconds(1f);
+                    }
+
+                    spawner.AllowStart();
+                    yield break;
+                }
+            }
 
             for (var i = timeBetweenRounds; i > 0; i--)
             {
@@ -230,7 +253,19 @@ namespace DefaultNamespace
         public void IncrementGold(int amount)
         {
             goldAmount += amount;
-            scoreText.text = goldAmount.ToString();
+            UpdateScoreText();
+        }
+
+        public void IncrementDiamonds(int amount)
+        {
+            diamondsAmount += amount;
+            UpdateScoreText();
+        }
+
+        private void UpdateScoreText()
+        {
+            if (scoreText != null)
+                scoreText.text = $"Gold: {goldAmount}  Diamonds: {diamondsAmount}";
         }
 
         private void OnEnable()
@@ -255,7 +290,7 @@ namespace DefaultNamespace
                 .OrderBy(e => Vector3.Distance(target.position, e.transform.position))
                 .FirstOrDefault();
         }
-        
+
         // ---------------- MINES ----------------
 
         public void AddMine()
@@ -301,7 +336,38 @@ namespace DefaultNamespace
             IncrementGold(-_mineUpgradeCost);
             _mineUpgradeCost *= 4;
 
-            MineScript.GoldIncrement++;
+            MineScript.DiamondsIncrement++;
+        }
+
+        // ---------------- ABILITIES ----------------
+
+        public void FreezeAllEnemies(float duration)
+        {
+            foreach (var enemyGo in enemies)
+            {
+                if (enemyGo && enemyGo.TryGetComponent<EnemyScript>(out var enemy))
+                    enemy.Freeze(duration);
+            }
+        }
+
+        public bool ConvertGoldToDiamonds(int goldCost, int diamondYield)
+        {
+            if (goldAmount < goldCost)
+                return false;
+
+            IncrementGold(-goldCost);
+            IncrementDiamonds(diamondYield);
+            return true;
+        }
+
+        public bool CanSpendGold(int amount)
+        {
+            return goldAmount >= amount;
+        }
+
+        public bool CanSpendDiamonds(int amount)
+        {
+            return diamondsAmount >= amount;
         }
 
     }

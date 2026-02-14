@@ -7,5 +7,7 @@ namespace _Game.Scripts.Weapon
         void Enable();
         void Disable();
         void TryAttack(Transform target);
+        void ApplyUpgrade(WeaponUpgradeTier tier);
+        int CurrentUpgradeTier { get; }
     }
 }

@@ -7,7 +7,7 @@ public class MineScript : MonoBehaviour
 {
     private static readonly int IsWorking = Animator.StringToHash("IsWorking");
     private Animator _animator;
-    public static int GoldIncrement = 1;
+    public static int DiamondsIncrement = 1;
 
     private void Start()
     {
@@ -28,15 +28,15 @@ public class MineScript : MonoBehaviour
 
             _animator.SetBool(IsWorking, true);
 
-            GameManager.instance.IncrementGold(GoldIncrement);
-            SpawnGoldText(GoldIncrement);
-            yield return new WaitForSeconds(3f);
+            GameManager.instance.IncrementDiamonds(DiamondsIncrement);
+            SpawnGoldText(DiamondsIncrement);
+            yield return new WaitForSeconds(5f);
         }
     }
 
     private void SpawnGoldText(int goldAmount)
     {
-        var textObject = new GameObject("GoldText")
+        var textObject = new GameObject("DiamondsText")
         {
             transform =
             {
@@ -45,10 +45,10 @@ public class MineScript : MonoBehaviour
         };
 
         var text = textObject.AddComponent<TextMeshPro>();
-        text.text = $"+{goldAmount} gold";
+        text.text = $"+{goldAmount} diamonds";
         text.fontSize = 3;
         text.alignment = TextAlignmentOptions.Center;
-        text.color = Color.yellow;
+        text.color = Color.green;
 
         Destroy(textObject, 1f);
     }
