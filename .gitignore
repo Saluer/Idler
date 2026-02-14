@@ -8,6 +8,9 @@
 [Mm]emoryCaptures/
 _Recovery/
 
+# Heavy third-party assets — never commit
+Assets/_ThirdParty/
+
 # Excluded UserSettings
 UserSettings/Layouts/
 
