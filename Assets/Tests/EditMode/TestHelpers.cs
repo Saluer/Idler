@@ -22,7 +22,13 @@ namespace Tests.EditMode
             _created.Add(go);
 
             var gm = go.AddComponent<GameManager>();
-            // Awake sets instance automatically
+            // In Edit Mode tests, Awake() is not called automatically.
+            // Set the singleton instance via reflection.
+            typeof(GameManager)
+                .GetProperty("instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { gm });
+
             gm.diamondsAmount = diamonds;
             gm.goldAmount = gold;
             return gm;
@@ -38,6 +44,12 @@ namespace Tests.EditMode
             _created.Add(go);
 
             var mgr = go.AddComponent<WaveModifierManager>();
+            // In Edit Mode tests, Awake() is not called — set singleton via reflection
+            typeof(WaveModifierManager)
+                .GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { mgr });
+
             // Set the private serialized field via reflection
             var field = typeof(WaveModifierManager).GetField(
                 "allModifiers",
@@ -57,6 +69,12 @@ namespace Tests.EditMode
             _created.Add(go);
 
             var mgr = go.AddComponent<WeaponUpgradeManager>();
+            // In Edit Mode tests, Awake() is not called — set singleton via reflection
+            typeof(WeaponUpgradeManager)
+                .GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { mgr });
+
             var field = typeof(WeaponUpgradeManager).GetField(
                 "upgradeConfigs",
                 BindingFlags.NonPublic | BindingFlags.Instance);
@@ -102,6 +120,21 @@ namespace Tests.EditMode
             }
 
             _created.Clear();
+
+            // Clear singleton references to prevent cross-test contamination
+            typeof(GameManager)
+                .GetProperty("instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { null });
+            typeof(WaveModifierManager)
+                .GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { null });
+            typeof(WeaponUpgradeManager)
+                .GetProperty("Instance", BindingFlags.Public | BindingFlags.Static)
+                .GetSetMethod(true)
+                .Invoke(null, new object[] { null });
+
             ResetBuffHub();
         }
 
